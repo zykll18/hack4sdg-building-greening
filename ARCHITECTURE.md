@@ -96,3 +96,9 @@ All three new paths exercise the same IFC-to-Fragments adapter used for project 
 Static preview PNGs are build-independent sample assets made offline from the actual IFC geometry with a depth buffer. They support sample choice and do not stand in for browser verification. The preview-generation tools are not runtime app dependencies. The published source link and file download update with each sample choice. Existing view, inspection and illustrative calculation behavior remains shared across models.
 
 The residential source is stored as `Schependomlaan.ifc.gz` because GitHub's blob-upload API rejected the 49.3 MB original. The existing asset-preparation script uses Node's built-in zlib/crypto capabilities to restore the exact original IFC and verify its published SHA-256 before development or production builds. The generated original IFC is ignored by Git; the server and picker still expose its normal `.ifc` URL. This is offline transport/storage compression, not geometry simplification or a new runtime dependency.
+
+## Camera interaction tuning
+
+The existing Camera Controls instance uses rotation speed 1.6, truck speed 3 and dolly speed 2.2. Smooth time is reduced to 0.1 seconds, with 0.035 seconds during dragging, to reduce perceived input lag. Cursor-centred dollying remains enabled. Left drag orbits, right drag pans and the wheel zooms; the footer states these controls explicitly.
+
+Camera `wake`/`sleep` events temporarily disable postproduction throughout movement and damping, including wheel and pinch input. Once motion ends, the selected shaded or technical style returns; basic mode stays basic even if chosen during movement. This reduces work per moving frame without lowering the stationary render resolution or changing model geometry. No dependency or framework change is required. Build checks verify integration; actual pointer feel and frame rate still require browser review.

@@ -25,6 +25,14 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     world.renderer = new OBF.PostproductionRenderer(components, container);
     world.renderer.three.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     world.camera = new OBC.OrthoPerspectiveCamera(components);
+    const controls = world.camera.controls;
+    controls.azimuthRotateSpeed = 1.6;
+    controls.polarRotateSpeed = 1.6;
+    controls.truckSpeed = 3;
+    controls.dollySpeed = 2.2;
+    controls.smoothTime = 0.1;
+    controls.draggingSmoothTime = 0.035;
+    controls.dollyToCursor = true;
     await world.camera.controls.setLookAt(25, 20, 25, 0, 0, 0);
     components.init();
     world.dynamicAnchor = false;
@@ -37,6 +45,19 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     postproduction.edgesPass.color.set('#526368');
     postproduction.edgesPass.width = 1;
     postproduction.smaaEnabled = true;
+
+    let cameraMoving = false;
+    let renderStyle = 'shaded';
+    // Camera motion events cover wheel/pinch as well as pointer dragging.
+    // Keep expensive passes off until damping finishes, then restore the chosen style.
+    controls.addEventListener('wake', () => {
+      cameraMoving = true;
+      postproduction.enabled = false;
+    });
+    controls.addEventListener('sleep', () => {
+      cameraMoving = false;
+      postproduction.enabled = renderStyle !== 'basic';
+    });
 
     const fragments = components.get(OBC.FragmentsManager);
     fragments.init(workerUrl);
@@ -169,9 +190,9 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       openFragments: (file) => openFile(file, 'frag'),
       setView,
       setRenderStyle(style) {
-        if (style === 'basic') postproduction.enabled = false;
-        else {
-          postproduction.enabled = true;
+        renderStyle = style;
+        postproduction.enabled = !cameraMoving && style !== 'basic';
+        if (style !== 'basic') {
           postproduction.style = style === 'technical' ? OBF.PostproductionAspect.PEN_SHADOWS : OBF.PostproductionAspect.COLOR_PEN_SHADOWS;
         }
       },
