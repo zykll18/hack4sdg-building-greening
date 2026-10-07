@@ -98,11 +98,11 @@ $('load-sample').addEventListener('click', async () => {
   if (importing || !viewer) return;
   importing = true;
   refreshImportControls();
-  showStatus('Downloading the official IFC sample…');
+  showStatus('Loading the buildingSMART architecture sample…');
   try {
-    const response = await fetch('https://thatopen.github.io/engine_components/resources/ifc/school_str.ifc', { signal: AbortSignal.timeout(30000) });
+    const response = await fetch('/samples/Building-Architecture.ifc', { signal: AbortSignal.timeout(30000) });
     if (!response.ok) throw new Error(`Sample download returned HTTP ${response.status}`);
-    const file = new File([await response.arrayBuffer()], 'school_str.ifc');
+    const file = new File([await response.arrayBuffer()], 'Building-Architecture.ifc');
     await viewer.openIfc(file);
   } catch (error) { showStatus(`Could not load the sample: ${error.message}. You can select a local IFC file instead.`); }
   finally { importing = false; refreshImportControls(); }
@@ -135,7 +135,7 @@ try {
       refreshImportControls();
     }
   });
-  showStatus('3D viewer ready. Select an IFC file or load the official sample.');
+  showStatus('3D viewer ready. Select an IFC file or load the building sample.');
   refreshImportControls();
 } catch (error) {
   showStatus(`Could not initialize the 3D viewer: ${error.message}`);

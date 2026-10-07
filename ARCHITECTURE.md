@@ -65,6 +65,12 @@ Vite serves `web/` as its entry directory. `public/wasm/` contains generated par
 
 The viewer adapter owns initialization, file replacement, click selection, properties, camera fit, and cleanup. Selected elements are handed off with model version, IFC GlobalId where available, local selection ID, name, category, and source properties. It does not automatically classify the selected component as usable roof area or feed guessed quantities into the calculator. IFC viewing and the illustrative carbon comparison remain labelled independently until the quantity-confirmation workstream is integrated. The official That Open sample can be loaded for testing; its download source is shown in the UI.
 
+## Architectural test sample and import coverage
+
+`public/samples/` bundles buildingSMART's compact IFC4 `Building-Architecture.ifc` with its CC BY 4.0 notice, exact source revision, and attribution. A local sample removes external network variability from the initial viewer experiment. The sample includes an `IfcRoof` aggregate, two roof `IfcSlab` components, walls, and a chimney. The selectable roof geometry belongs to the slabs; the aggregate roof identity is retained as data and must not be presented as a missing roof just because it is not a separate rendered component.
+
+The default Fragments importer is retained to match the official IFC-loading baseline. In this sample, the parser reports no placed geometry for the aggregate roof or chimney; the roof slabs carry the roof geometry. The data-only smoke check reports source geometry entries separately from converted display components and verifies that each converted component retains its IFC GlobalId. Different counts are not automatically evidence of missing geometry. These checks do not validate browser WebGL output or pointer picking.
+
 ## References and licenses
 
 [That Open Components](https://github.com/ThatOpen/engine_components) is the selected viewer foundation. [xeokit-bim-viewer](https://github.com/xeokit/xeokit-bim-viewer) is a user-interface reference only. The installed Components, Components Front, Fragments, Three.js, Camera Controls, and Vite packages use MIT; [web-ifc](https://github.com/ThatOpen/engine_web-ifc) uses MPL-2.0 and its WASM is redistributed unchanged with the package license copied alongside it. Do not copy xeokit implementation into this prototype without an explicit license review.

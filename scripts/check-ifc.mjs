@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import * as WebIFC from 'web-ifc';
-import { IfcImporter } from '@thatopen/fragments';
+import { IfcImporter, SingleThreadedFragmentsModel } from '@thatopen/fragments';
 
 const path = process.argv[2];
 if (!path) throw new TypeError('Provide an IFC path: npm run test:ifc -- /path/to/model.ifc');
@@ -28,4 +28,10 @@ const importer = new IfcImporter();
 importer.wasm = { path: resolve(root, 'node_modules/web-ifc') + '/', absolute: true };
 const fragment = await importer.process({ bytes });
 if (!fragment.byteLength) throw new Error('IFC conversion returned an empty Fragments asset');
-console.log(JSON.stringify({ schema, geometryCount, convertedFragmentBytes: fragment.byteLength }));
+const model = new SingleThreadedFragmentsModel('smoke-test', fragment);
+try {
+  const ids = model.getItemsIdsWithGeometry();
+  if (!ids.length) throw new Error('Converted Fragments contain no display components');
+  if (model.getGuidsByLocalIds(ids).some((guid) => !guid)) throw new Error('A converted display component lost its IFC GlobalId');
+  console.log(JSON.stringify({ schema, sourceGeometryCount: geometryCount, displayComponentCount: ids.length, convertedFragmentBytes: fragment.byteLength }));
+} finally { model.dispose(); }
