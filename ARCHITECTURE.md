@@ -37,26 +37,34 @@ Every result must carry the project/model version, stable roof element ID, area 
 
 The first implementation may run locally in the browser with a single sample IFC. A backend, database, authentication, and external AI service should be introduced only when the demo requires them. Before adding a backend dependency, changing directories or frameworks, or defining custom error codes, document the reason and update this file.
 
-## First executable scaffold (7 October 2026)
+## Runtime and ownership
 
-This first scaffold uses browser-native JavaScript modules and Node's built-in development server and test runner. It adds **no third-party dependency**. This choice makes the shared contract and comparison arithmetic runnable while package-registry access is unavailable. It does **not** replace the selected That Open foundation: workstream A will connect its IFC viewer through `BimViewerPort` when package access and an authorized sample IFC are available. React, Vite, a backend, and a database are deferred because the current simple demo shell does not need them. Introducing any of these later requires recording the concrete need and integration boundary here.
+The browser application uses plain JavaScript, Vite, and the selected That Open viewer foundation. Node's built-in test runner verifies the pure calculation and selection-data modules. A backend, database, and UI framework are deferred until a specific integration requirement justifies them. Dependency reasons for the first IFC milestone are recorded below.
 
 ```text
-web/                    D: page, concept illustration, interactions
-src/adapters/            A: IFC viewer boundary (currently unimplemented)
+web/                    D: page, viewer mounting, interactions
+src/adapters/            A: IFC viewing, selection and data handoff
 src/domain/contract.js   shared identifiers, units, provenance
 src/domain/calculate.js  B: deterministic cost/carbon arithmetic
 src/data/demo.js         C: two labelled illustrative scenarios
 tests/                  unit and evidence-boundary checks
-scripts/                local development server
+scripts/                generated WASM assets and IFC integration checks
 ```
 
-The UI never treats a selected `.ifc` file as parsed. The example roof has an explicit `DEMO-ROOF-01` identifier and `assumed` provenance. A user-edited roof area becomes `user-confirmed` only as a UI input label; the page still asks for professional verification. The architecture is ready for a real IFC adapter to return stable element IDs and quantities, followed by a confirmation step before calculation.
+The viewer displays actual parsed IFC geometry and attributes. The numerical comparison remains a separate example roof with an explicit `DEMO-ROOF-01` identifier and `assumed` provenance. A user-edited example area becomes `user-confirmed` only as a UI input label; the page still asks for professional verification. Selecting an IFC element does not yet populate usable roof area. The next integration step is a roof-quantity handoff followed by explicit confirmation before calculation.
 
 The first calculation covers **only the proposed green-roof intervention**. For a horizon of `N` years, covered area is usable roof area × scenario coverage. Cost is installation plus `N` years of maintenance. Carbon difference is installation embodied emissions minus `N` years of assumed avoided operational emissions. The factors in `src/data/demo.js` are illustrative placeholders without external evidence; outputs must not be presented as measured performance, whole-building baseline, carbon offsets, or net-zero certification. Future work must add source-backed factors, local energy modelling and maintenance/end-of-life effects before making stronger claims. Carbon sequestration is excluded entirely from this first calculation.
 
-The `BimViewerPort` handoff for workstream A accepts an IFC file and returns actual model version and roof element IDs, then supports element highlighting and independent scenario overlays. Workstream B owns quantity validation and factor provenance. Workstream C may use AI to propose and explain options, but submits structured parameters to B's deterministic calculation. Workstream D keeps the UI synchronized with those results. There are no custom error codes; standard JavaScript errors indicate invalid inputs.
+Workstream A's first viewer handoff accepts an IFC file and returns the content-based model version, file name, and display component count. Its selection callback returns IFC identity and attributes. Roof-candidate quantities and independent scenario overlays will extend this port in the next milestone. Workstream B owns quantity validation and factor provenance. Workstream C may use AI to propose and explain options, but submits structured parameters to B's deterministic calculation. Workstream D keeps the UI synchronized with those results. There are no custom error codes; standard JavaScript errors indicate invalid inputs.
+
+## Task A: IFC viewer foundation
+
+This milestone replaces the concept illustration with actual IFC geometry and component selection. Vite is introduced to resolve npm modules, bundle the Fragments worker, and build the browser application. The application remains plain JavaScript; no UI framework or backend is introduced. `@thatopen/components` provides the scene and IFC loader, `@thatopen/components-front` provides selection highlighting, `@thatopen/fragments` supplies the matching worker, `three` supplies rendering primitives, `web-ifc` supplies IFC/WASM parsing, and `camera-controls` satisfies the viewer camera peer dependency. Versions are pinned and a lockfile records the resolved dependency tree.
+
+Vite serves `web/` as its entry directory. `public/wasm/` contains generated parser assets copied from the installed `web-ifc` package by `scripts/prepare-assets.mjs`; these generated assets are not committed. The previous custom development server is replaced by Vite's standard development/preview commands. This avoids introducing a second custom asset loader or a backend for the milestone.
+
+The viewer adapter owns initialization, file replacement, click selection, properties, camera fit, and cleanup. Selected elements are handed off with model version, IFC GlobalId where available, local selection ID, name, category, and source properties. It does not automatically classify the selected component as usable roof area or feed guessed quantities into the calculator. IFC viewing and the illustrative carbon comparison remain labelled independently until the quantity-confirmation workstream is integrated. The official That Open sample can be loaded for testing; its download source is shown in the UI.
 
 ## References and licenses
 
-[That Open Components](https://github.com/ThatOpen/engine_components) is the selected viewer foundation. [xeokit-bim-viewer](https://github.com/xeokit/xeokit-bim-viewer) is a user-interface reference only. Review the exact package licenses before incorporating source code or assets; do not copy xeokit implementation into this prototype without an explicit license review.
+[That Open Components](https://github.com/ThatOpen/engine_components) is the selected viewer foundation. [xeokit-bim-viewer](https://github.com/xeokit/xeokit-bim-viewer) is a user-interface reference only. The installed Components, Components Front, Fragments, Three.js, Camera Controls, and Vite packages use MIT; [web-ifc](https://github.com/ThatOpen/engine_web-ifc) uses MPL-2.0 and its WASM is redistributed unchanged with the package license copied alongside it. Do not copy xeokit implementation into this prototype without an explicit license review.

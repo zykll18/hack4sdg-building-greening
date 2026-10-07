@@ -29,6 +29,10 @@ Photo-based modelling, voice input, supplier matching, and certification submiss
 
 ## Run the current scaffold
 
-With Node.js 20.11 or newer, run `npm run dev` and open `http://127.0.0.1:5173/`. Run `npm test` to verify the comparison arithmetic. No package installation is needed.
+With Node.js 20.19+ or 22.12+, run `npm ci`, then `npm run dev` and open `http://127.0.0.1:5173/`. Run `npm test` for calculation/selection checks and `npm run build` for a production build. `npm run preview` serves that build locally.
 
-The current browser prototype displays two **illustrative** green-roof scenarios with editable roof area, period, and budget. Its building image is a 2D concept illustration. Selecting an IFC file only acknowledges the file; it does not parse it or replace the demo roof. That Open integration, real 3D element selection, sourced factors, AI proposals, and a report export are next integration tasks. See [ARCHITECTURE.md](ARCHITECTURE.md) for the data contract and computation boundary.
+The Task A viewer loads a local IFC file, converts it to Fragments, displays real geometry, fits the camera, and supports click selection/highlighting. The selection panel shows name, IFC type, GlobalId when available, local ID, content-based model version, and source attributes. The optional official sample button downloads `school_str.ifc` from That Open's example repository; selected local IFC files remain in the browser.
+
+For a data-only integration check, run `npm run test:ifc -- /path/to/model.ifc`. It validates source geometry and GlobalId access and converts the file to Fragments using the installed parser. It does not replace a browser/WebGL interaction check. The official school sample was verified as IFC4 with 1,548 display components and a 695,546-byte converted Fragments asset.
+
+The cost/carbon comparison still uses two **illustrative** scenarios and a separate demo roof. Selecting an IFC component does not confirm usable roof area or automatically update those calculations. Roof candidate selection, verified quantity handoff, greening overlays, sourced factors, AI proposals, and report export are the next integration tasks. See [ARCHITECTURE.md](ARCHITECTURE.md) for ownership and computation boundaries.

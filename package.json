@@ -3,7 +3,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/dev-server.mjs",
-    "test": "node --test"
+    "dev": "node scripts/prepare-assets.mjs && vite",
+    "build": "node scripts/prepare-assets.mjs && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5173",
+    "test": "node --test",
+    "test:ifc": "node scripts/check-ifc.mjs"
+  },
+  "engines": { "node": "^20.19.0 || >=22.12.0" },
+  "dependencies": {
+    "@thatopen/components": "3.4.9",
+    "@thatopen/components-front": "3.4.5",
+    "@thatopen/fragments": "3.4.8",
+    "camera-controls": "3.1.2",
+    "three": "0.182.0",
+    "web-ifc": "0.0.77"
+  },
+  "devDependencies": {
+    "vite": "8.3.3"
   }
 }

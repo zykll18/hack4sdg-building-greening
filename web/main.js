@@ -5,12 +5,16 @@ const $ = (id) => document.getElementById(id);
 const money = (value) => `HK$${Math.round(value).toLocaleString('en-HK')}`;
 const number = (value) => Math.round(value).toLocaleString('en-HK');
 let selected = 'extensive';
+let viewer;
+let importing = false;
+let areaEdited = false;
+let loadedModel = null;
 
 function render() {
   const area = Number($('area').value);
   const years = Number($('years').value);
   const budget = $('budget').value === '' ? undefined : Number($('budget').value);
-  const roof = { ...demoRoof, usableArea: { value: area, unit: 'm2', provenance: 'user-confirmed', source: 'Entered in prototype; requires project verification' } };
+  const roof = { ...demoRoof, usableArea: { value: area, unit: 'm2', provenance: areaEdited ? 'user-confirmed' : 'assumed', source: areaEdited ? 'Entered in prototype; requires project verification' : demoRoof.usableArea.source } };
   try {
     const cards = demoScenarios.map((scenario) => {
       const result = calculateScenario({ roof, scenario, years, budgetHkd: budget });
@@ -30,19 +34,110 @@ function render() {
   }
 }
 
-for (const id of ['area', 'years', 'budget']) $(id).addEventListener('input', render);
-$('ifc-file').addEventListener('change', (event) => {
-  const file = event.target.files?.[0];
-  $('upload-status').textContent = file
-    ? `${file.name} selected. IFC parsing is not connected yet; the comparison still uses demo roof data.`
-    : 'IFC import and component selection are the next integration step. This demo uses a separate sample roof.';
+for (const id of ['area', 'years', 'budget']) $(id).addEventListener('input', () => {
+  if (id === 'area') areaEdited = true;
+  render();
 });
+
+function showSelection(selection) {
+  const panel = $('selection-details');
+  panel.replaceChildren();
+  if (!selection) {
+    panel.textContent = 'Click a component to view its IFC identity and attributes.';
+    return;
+  }
+  const details = document.createElement('dl');
+  for (const [label, value] of [
+    ['Name', selection.name], ['IFC type', selection.category],
+    ['GlobalId', selection.globalId ?? 'Not available in IFC'],
+    ['Local selection ID', selection.localId], ['Model version', selection.modelVersion]
+  ]) {
+    const term = document.createElement('dt');
+    const description = document.createElement('dd');
+    term.textContent = label;
+    description.textContent = String(value);
+    details.append(term, description);
+  }
+  const properties = document.createElement('details');
+  const summary = document.createElement('summary');
+  summary.textContent = 'IFC source attributes';
+  const content = document.createElement('pre');
+  content.textContent = JSON.stringify(selection.properties, null, 2);
+  properties.append(summary, content);
+  panel.append(details, properties);
+}
+
+function refreshImportControls() {
+  $('ifc-file').disabled = importing || !viewer;
+  $('load-sample').disabled = importing || !viewer;
+  $('fit-model').disabled = importing || !loadedModel;
+  $('clear-selection').disabled = importing || !loadedModel;
+  $('bim-container').setAttribute('aria-busy', String(importing));
+}
+
+function showStatus(message) {
+  $('viewer-status').textContent = message;
+  $('upload-status').textContent = message;
+}
+
+async function importFile(file) {
+  if (!viewer || importing) return;
+  importing = true;
+  refreshImportControls();
+  try { await viewer.openIfc(file); }
+  catch (error) { showStatus(`IFC import failed: ${error.message}`); }
+  finally { importing = false; refreshImportControls(); }
+}
+
+$('ifc-file').addEventListener('change', async (event) => {
+  const file = event.target.files?.[0];
+  if (file) await importFile(file);
+  event.target.value = '';
+});
+$('load-sample').addEventListener('click', async () => {
+  if (importing || !viewer) return;
+  importing = true;
+  refreshImportControls();
+  showStatus('Downloading the official IFC sample…');
+  try {
+    const response = await fetch('https://thatopen.github.io/engine_components/resources/ifc/school_str.ifc', { signal: AbortSignal.timeout(30000) });
+    if (!response.ok) throw new Error(`Sample download returned HTTP ${response.status}`);
+    const file = new File([await response.arrayBuffer()], 'school_str.ifc');
+    await viewer.openIfc(file);
+  } catch (error) { showStatus(`Could not load the sample: ${error.message}. You can select a local IFC file instead.`); }
+  finally { importing = false; refreshImportControls(); }
+});
+for (const [id, method] of [['fit-model', 'fit'], ['clear-selection', 'clearSelection']]) {
+  $(id).addEventListener('click', async () => {
+    try { await viewer?.[method](); }
+    catch (error) { showStatus(error.message); }
+  });
+}
 for (const [buttonId, scenarioId] of [['view-before', null], ['view-extensive', 'extensive'], ['view-intensive', 'intensive']]) {
   $(buttonId).addEventListener('click', () => {
     selected = scenarioId;
-    $('green-roof').style.display = scenarioId ? '' : 'none';
     for (const id of ['view-before', 'view-extensive', 'view-intensive']) $(id).classList.toggle('active', id === buttonId);
     render();
   });
 }
 render();
+refreshImportControls();
+try {
+  const { createBimViewer } = await import('../src/adapters/bim-viewer.js');
+  viewer = await createBimViewer($('bim-container'), {
+    onSelection: showSelection,
+    onStatus: showStatus,
+    onModel: (model) => {
+      loadedModel = model;
+      $('project-label').textContent = model?.fileName ?? 'No IFC loaded';
+      $('model-status-label').textContent = model ? `${model.componentCount.toLocaleString()} components` : 'Ready to import';
+      $('viewer-badge').textContent = model ? 'IFC geometry' : 'No model loaded';
+      refreshImportControls();
+    }
+  });
+  showStatus('3D viewer ready. Select an IFC file or load the official sample.');
+  refreshImportControls();
+} catch (error) {
+  showStatus(`Could not initialize the 3D viewer: ${error.message}`);
+}
+if (import.meta.hot) import.meta.hot.dispose(() => { void viewer?.dispose(); });
