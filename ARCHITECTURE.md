@@ -74,3 +74,15 @@ The default Fragments importer is retained to match the official IFC-loading bas
 ## References and licenses
 
 [That Open Components](https://github.com/ThatOpen/engine_components) is the selected viewer foundation. [xeokit-bim-viewer](https://github.com/xeokit/xeokit-bim-viewer) is a user-interface reference only. The installed Components, Components Front, Fragments, Three.js, Camera Controls, and Vite packages use MIT; [web-ifc](https://github.com/ThatOpen/engine_web-ifc) uses MPL-2.0 and its WASM is redistributed unchanged with the package license copied alongside it. Do not copy xeokit implementation into this prototype without an explicit license review.
+
+## Task A: detailed model review workspace
+
+The review page now prioritizes a wide 3D viewport, with model inputs/content counts on the left, component properties on the right, and the illustrative scenario comparison below. The layout remains plain JavaScript/CSS and uses the existing dependency set. No backend, framework replacement, or new dependency is introduced.
+
+The viewer replaces `SimpleRenderer` with That Open's already-installed `PostproductionRenderer`. Its color/edge/ambient-occlusion preset and SMAA give BIM geometry clearer boundaries and depth. Technical drawing and basic rendering are selectable; basic rendering disables postproduction for slower devices. An isolated That Open grid is placed below the model bounding box. Camera/model synchronization follows the official examples when projections change. Roof view changes the camera only; it does not identify or validate a roof automatically. Expanded view gives the same renderer more screen space and relies on its existing resize observer.
+
+Two official That Open school samples are bundled unchanged at revision `8479a7c5c6a3c0cf8c7ceab1d1fb329a3f7d1922`, with the repository's MIT license and source attribution. `school_arq.frag` is the same architecture model used in the official Highlighter/rendering examples. It demonstrates the richer model and its IFC-derived component data, but bypasses IFC parsing because it has already been converted. `school_str.ifc` tests the full IFC-to-Fragments path for the structural school model; its content is not the same architectural dataset. The compact buildingSMART house remains available for quick identity checks.
+
+Both input paths use the same model registration, content hash, geometry/category checks, selection callback, camera setup, and model replacement cleanup. The on-model contract now adds `sourceFormat` and counts of display components by category. The interface labels preconverted Fragments distinctly from IFC. It does not claim the architecture Fragments file is an original IFC deliverable, or that geometry detail supplies validated carbon or roof quantities.
+
+Default samples are hosted locally so the demo does not depend on external model downloads. They are loaded on request, rather than downloading all sample assets at application startup. Detailed-model rendering and interaction still require browser review; successful build/data checks alone cannot establish GPU performance or pointer picking.

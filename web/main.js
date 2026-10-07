@@ -4,11 +4,16 @@ import { demoRoof, demoScenarios } from '../src/data/demo.js';
 const $ = (id) => document.getElementById(id);
 const money = (value) => `HK$${Math.round(value).toLocaleString('en-HK')}`;
 const number = (value) => Math.round(value).toLocaleString('en-HK');
-let selected = 'extensive';
+let selected = null;
 let viewer;
 let importing = false;
 let areaEdited = false;
 let loadedModel = null;
+const samples = {
+  'school-arq': { name: 'school_arq.frag', format: 'frag', description: 'Official That Open architecture model. Preconverted Fragments for visual comparison.' },
+  'school-str': { name: 'school_str.ifc', format: 'ifc', description: 'Official That Open structural school model. Tests the full IFC import pipeline; facade finishes are not included.' },
+  'test-house': { name: 'Building-Architecture.ifc', format: 'ifc', description: 'Compact buildingSMART test house. 13 display components for quick import and identity checks.' }
+};
 
 function render() {
   const area = Number($('area').value);
@@ -43,9 +48,11 @@ function showSelection(selection) {
   const panel = $('selection-details');
   panel.replaceChildren();
   if (!selection) {
-    panel.textContent = 'Click a component to view its IFC identity and attributes.';
+    panel.classList.add('empty-text');
+    panel.textContent = 'Select a roof, wall or other component in the model to inspect its IFC identity.';
     return;
   }
+  panel.classList.remove('empty-text');
   const details = document.createElement('dl');
   for (const [label, value] of [
     ['Name', selection.name], ['IFC type', selection.category],
@@ -70,8 +77,16 @@ function showSelection(selection) {
 function refreshImportControls() {
   $('ifc-file').disabled = importing || !viewer;
   $('load-sample').disabled = importing || !viewer;
+  $('empty-load-sample').disabled = importing || !viewer;
+  $('sample-model').disabled = importing;
   $('fit-model').disabled = importing || !loadedModel;
+  $('view-iso').disabled = importing || !loadedModel;
+  $('view-top').disabled = importing || !loadedModel;
+  $('render-style').disabled = importing || !viewer;
+  $('show-grid').disabled = importing || !viewer;
   $('clear-selection').disabled = importing || !loadedModel;
+  $('loading-overlay').hidden = !importing;
+  $('viewer-empty').hidden = importing || Boolean(loadedModel);
   $('bim-container').setAttribute('aria-busy', String(importing));
 }
 
@@ -94,18 +109,45 @@ $('ifc-file').addEventListener('change', async (event) => {
   if (file) await importFile(file);
   event.target.value = '';
 });
-$('load-sample').addEventListener('click', async () => {
+async function loadSample() {
   if (importing || !viewer) return;
   importing = true;
   refreshImportControls();
-  showStatus('Loading the buildingSMART architecture sample…');
+  const sample = samples[$('sample-model').value];
+  showStatus(`Loading ${sample.name}…`);
   try {
-    const response = await fetch('/samples/Building-Architecture.ifc', { signal: AbortSignal.timeout(30000) });
+    const response = await fetch(`/samples/${sample.name}`, { signal: AbortSignal.timeout(30000) });
     if (!response.ok) throw new Error(`Sample download returned HTTP ${response.status}`);
-    const file = new File([await response.arrayBuffer()], 'Building-Architecture.ifc');
-    await viewer.openIfc(file);
+    const file = new File([await response.arrayBuffer()], sample.name);
+    await (sample.format === 'ifc' ? viewer.openIfc(file) : viewer.openFragments(file));
   } catch (error) { showStatus(`Could not load the sample: ${error.message}. You can select a local IFC file instead.`); }
   finally { importing = false; refreshImportControls(); }
+}
+$('load-sample').addEventListener('click', loadSample);
+$('empty-load-sample').addEventListener('click', () => {
+  $('sample-model').value = 'school-arq';
+  updateSampleDescription();
+  void loadSample();
+});
+function updateSampleDescription() {
+  const sample = samples[$('sample-model').value];
+  $('sample-description').textContent = sample.description;
+  $('sample-download').href = `/samples/${sample.name}`;
+}
+$('sample-model').addEventListener('change', updateSampleDescription);
+for (const [id, direction] of [['view-iso', 'iso'], ['view-top', 'top']]) $(id).addEventListener('click', async () => {
+  try { await viewer?.setView(direction); }
+  catch (error) { showStatus(`Could not change view: ${error.message}`); }
+});
+$('render-style').addEventListener('change', (event) => {
+  try { viewer?.setRenderStyle(event.target.value); }
+  catch (error) { showStatus(`Could not change rendering: ${error.message}`); }
+});
+$('show-grid').addEventListener('change', (event) => viewer?.setGrid(event.target.checked));
+$('focus-viewer').addEventListener('click', () => {
+  const expanded = $('workspace').classList.toggle('focus-mode');
+  $('focus-viewer').textContent = expanded ? 'Exit expanded view' : 'Expand view';
+  $('focus-viewer').setAttribute('aria-pressed', String(expanded));
 });
 for (const [id, method] of [['fit-model', 'fit'], ['clear-selection', 'clearSelection']]) {
   $(id).addEventListener('click', async () => {
@@ -116,7 +158,10 @@ for (const [id, method] of [['fit-model', 'fit'], ['clear-selection', 'clearSele
 for (const [buttonId, scenarioId] of [['view-before', null], ['view-extensive', 'extensive'], ['view-intensive', 'intensive']]) {
   $(buttonId).addEventListener('click', () => {
     selected = scenarioId;
-    for (const id of ['view-before', 'view-extensive', 'view-intensive']) $(id).classList.toggle('active', id === buttonId);
+    for (const id of ['view-before', 'view-extensive', 'view-intensive']) {
+      $(id).classList.toggle('active', id === buttonId);
+      $(id).setAttribute('aria-pressed', String(id === buttonId));
+    }
     render();
   });
 }
@@ -129,9 +174,26 @@ try {
     onStatus: showStatus,
     onModel: (model) => {
       loadedModel = model;
-      $('project-label').textContent = model?.fileName ?? 'No IFC loaded';
+      $('project-label').textContent = model?.fileName ?? 'Start a building review';
       $('model-status-label').textContent = model ? `${model.componentCount.toLocaleString()} components` : 'Ready to import';
-      $('viewer-badge').textContent = model ? 'IFC geometry' : 'No model loaded';
+      $('viewer-badge').textContent = model ? (model.sourceFormat === 'frag' ? 'Fragments · IFC-derived' : 'IFC geometry') : 'No model loaded';
+      $('inventory-total').textContent = model ? model.componentCount.toLocaleString() : '—';
+      $('category-list').replaceChildren();
+      for (const category of model?.categoryCounts ?? []) {
+        const item = document.createElement('li');
+        const label = document.createElement('span');
+        const count = document.createElement('span');
+        label.textContent = category.name;
+        count.textContent = category.count.toLocaleString();
+        item.append(label, count);
+        $('category-list').append(item);
+      }
+      if (!model) {
+        const item = document.createElement('li');
+        item.className = 'empty-text';
+        item.textContent = 'Component types appear after loading.';
+        $('category-list').append(item);
+      }
       refreshImportControls();
     }
   });

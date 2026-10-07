@@ -13,19 +13,46 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
   let categoryById = new Map();
   let selectionEpoch = 0;
   let loading = false;
+  let displayIds = [];
 
   try {
     world.scene = new OBC.SimpleScene(components);
-    world.scene.setup();
-    world.scene.three.background = new THREE.Color('#edf4ee');
-    world.renderer = new OBC.SimpleRenderer(components, container);
+    world.scene.setup({
+      backgroundColor: new THREE.Color('#f1f3f4'),
+      ambientLight: { color: new THREE.Color('#ffffff'), intensity: 1.1 },
+      directionalLight: { color: new THREE.Color('#ffffff'), intensity: 1.8, position: new THREE.Vector3(40, 60, 25) }
+    });
+    world.renderer = new OBF.PostproductionRenderer(components, container);
+    world.renderer.three.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     world.camera = new OBC.OrthoPerspectiveCamera(components);
     await world.camera.controls.setLookAt(25, 20, 25, 0, 0, 0);
     components.init();
+    world.dynamicAnchor = false;
+    const grid = components.get(OBC.Grids).create(world);
+    grid.setup({ color: new THREE.Color('#b7c1c4'), primarySize: 10, secondarySize: 1, distance: 120 });
+    const postproduction = world.renderer.postproduction;
+    postproduction.enabled = true;
+    postproduction.basePass.isolatedMaterials.push(grid.material);
+    postproduction.style = OBF.PostproductionAspect.COLOR_PEN_SHADOWS;
+    postproduction.edgesPass.color.set('#526368');
+    postproduction.edgesPass.width = 1;
+    postproduction.smaaEnabled = true;
 
     const fragments = components.get(OBC.FragmentsManager);
     fragments.init(workerUrl);
     world.camera.controls.addEventListener('update', () => fragments.core.update());
+    world.onCameraChanged.add((camera) => {
+      for (const [, model] of fragments.list) model.useCamera(camera.three);
+      postproduction.updateCamera();
+      fragments.core.update(true);
+    });
+    fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
+      if (!material.isLodMaterial) {
+        material.polygonOffset = true;
+        material.polygonOffsetUnits = 1;
+        material.polygonOffsetFactor = 1;
+      }
+    });
     fragments.list.onItemSet.add(({ value: model }) => {
       model.useCamera(world.camera.three);
       world.scene.three.add(model.object);
@@ -59,19 +86,28 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     });
     highlighter.events.select.onClear.add(() => { selectionEpoch++; onSelection(null); });
 
-    return {
-      async openIfc(file) {
-        if (loading) throw new Error('An IFC import is already in progress');
-        if (!file.name.toLowerCase().endsWith('.ifc')) throw new TypeError('Select an IFC file');
+    async function setView(direction) {
+      if (!currentModel || loading) return;
+      const sphere = await world.camera.getItemsBounding({ [currentModel.modelId]: new Set(displayIds) });
+      const center = sphere.center;
+      const offset = direction === 'top' ? new THREE.Vector3(0, 1, 0.001) : new THREE.Vector3(1, 0.7, 1);
+      offset.normalize().multiplyScalar(Math.max(sphere.radius * 3, 1));
+      await world.camera.controls.setLookAt(center.x + offset.x, center.y + offset.y, center.z + offset.z, center.x, center.y, center.z, true);
+      await world.camera.fitToItems({ [currentModel.modelId]: new Set(displayIds) });
+    }
+
+    async function openFile(file, format) {
+        if (loading) throw new Error('A model import is already in progress');
+        if (!file.name.toLowerCase().endsWith(`.${format}`)) throw new TypeError(`Select a ${format.toUpperCase()} file`);
         loading = true;
         highlighter.enabled = false;
         selectionEpoch++;
         onSelection(null);
         let replacing = false;
         try {
-          onStatus('Reading IFC…');
+          onStatus(`Reading ${format === 'ifc' ? 'IFC' : 'official Fragments sample'}…`);
           const bytes = new Uint8Array(await file.arrayBuffer());
-          if (!new TextDecoder().decode(bytes.slice(0, 256)).includes('ISO-10303-21')) throw new TypeError('This file does not contain a supported IFC STEP header');
+          if (format === 'ifc' && !new TextDecoder().decode(bytes.slice(0, 256)).includes('ISO-10303-21')) throw new TypeError('This file does not contain a supported IFC STEP header');
           const digest = await crypto.subtle.digest('SHA-256', bytes);
           const version = `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
           await highlighter.clear('select');
@@ -81,20 +117,31 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
             await fragments.core.disposeModel(currentModel.modelId);
           }
           currentModel = null;
+          displayIds = [];
           categoryById = new Map();
           onModel(null);
-          onStatus('Converting IFC geometry…');
-          const model = await loader.load(bytes, true, version, { processData: {
+          onStatus(format === 'ifc' ? 'Converting IFC geometry…' : 'Opening the official school architecture model…');
+          const model = format === 'ifc' ? await loader.load(bytes, true, version, { processData: {
             progressCallback: (progress) => onStatus(`Converting IFC… ${Math.round(progress * 100)}%`)
-          } });
+          } }) : await fragments.core.load(bytes, { modelId: version });
           currentModel = model;
           modelVersion = version;
           const [categories, geometryIds] = await Promise.all([model.getItemsOfCategories([/.*/]), model.getItemsIdsWithGeometry()]);
           for (const [category, ids] of Object.entries(categories)) for (const id of ids) categoryById.set(id, category);
           if (!geometryIds.length) throw new Error('The IFC contains no supported display geometry');
-          await world.camera.fitToItems();
+          displayIds = geometryIds;
+          const visibleIds = new Set(geometryIds);
+          const categoryCounts = Object.entries(categories).map(([name, ids]) => ({ name, count: ids.filter((id) => visibleIds.has(id)).length })).filter(({ count }) => count > 0).sort((a, b) => b.count - a.count);
+          const box = await model.getMergedBox(geometryIds);
+          grid.three.position.y = box.min.y - 0.05;
+          const sphere = box.getBoundingSphere(new THREE.Sphere());
+          const center = sphere.center;
+          const distance = Math.max(sphere.radius * 2.5, 1);
+          await world.camera.projection.set('Perspective');
+          await world.camera.controls.setLookAt(center.x + distance, center.y + distance * 0.7, center.z + distance, center.x, center.y, center.z);
+          await world.camera.fitToItems({ [model.modelId]: new Set(geometryIds) });
           await fragments.core.update(true);
-          const info = { modelVersion: version, fileName: file.name, componentCount: geometryIds.length };
+          const info = { modelVersion: version, fileName: file.name, sourceFormat: format, componentCount: geometryIds.length, categoryCounts };
           onModel(info);
           onStatus(`${file.name} · ${geometryIds.length.toLocaleString()} components. Click a component to inspect it.`);
           return info;
@@ -106,6 +153,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
           }
           if (replacing) {
             modelVersion = null;
+            displayIds = [];
             categoryById.clear();
             onModel(null);
           }
@@ -114,7 +162,20 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
           loading = false;
           highlighter.enabled = true;
         }
+      }
+
+    return {
+      openIfc: (file) => openFile(file, 'ifc'),
+      openFragments: (file) => openFile(file, 'frag'),
+      setView,
+      setRenderStyle(style) {
+        if (style === 'basic') postproduction.enabled = false;
+        else {
+          postproduction.enabled = true;
+          postproduction.style = style === 'technical' ? OBF.PostproductionAspect.PEN_SHADOWS : OBF.PostproductionAspect.COLOR_PEN_SHADOWS;
+        }
       },
+      setGrid(visible) { grid.visible = visible; },
       async fit() { if (currentModel && !loading) await world.camera.fitToItems(); },
       async clearSelection() { await highlighter.clear('select'); },
       async highlightRoof(globalId) {

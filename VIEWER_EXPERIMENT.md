@@ -15,11 +15,11 @@ The verified data pipeline returns IFC4, 18 source geometry entries, 13 converte
 
 The roof aggregate has no placed geometry in this parser result; its slab children carry selectable roof geometry. The chimney is in the default importer class set but has no placed geometry in the source parser result. No extra class configuration is needed.
 
-## Comparison with official That Open examples
+## Original adapter comparison with official That Open examples
 
 This is an implementation comparison, not an observed visual-quality or performance benchmark. The computer-use browser policy check was unavailable for both the local app and the official demo, so camera interaction, pointer picking, WebGL output, and FPS remain unverified.
 
-| Aspect | Official baseline | This app |
+| Aspect | Official baseline | Original adapter before detailed-model revision |
 | --- | --- | --- |
 | IFC conversion | `IfcLoader` converts IFC to Fragments | Same installed conversion pipeline, with local WASM and bundled worker |
 | Core render setup | `SimpleScene`, `SimpleRenderer`, `OrthoPerspectiveCamera` | Same core renderer classes, with a pale background and automatic model fit |
@@ -32,4 +32,16 @@ References: [official IFC loader tutorial](https://docs.thatopen.com/Tutorials/C
 
 ## Browser review still required
 
-Open the app, click **Load building sample**, then confirm visible roof/walls, orbit and zoom, model fit, highlighted selection, and the left roof slab's name/GlobalId. Compare with the [official loader demo](https://thatopen.github.io/engine_components/examples/IfcLoader/) and [official Highlighter demo](https://thatopen.github.io/engine_components/examples/Highlighter/). The official demos use their own hardcoded datasets; a pixel-level comparison requires the same model, camera, viewport, and lighting in both implementations.
+Open the app, choose **Small house · test IFC**, click **Open sample model**, then confirm visible roof/walls, orbit and zoom, model fit, highlighted selection, and the left roof slab's name/GlobalId. Compare with the [official loader demo](https://thatopen.github.io/engine_components/examples/IfcLoader/) and [official Highlighter demo](https://thatopen.github.io/engine_components/examples/Highlighter/). The official demos use their own hardcoded datasets; a pixel-level comparison requires the same model, camera, viewport, and lighting in both implementations.
+
+## Detailed-model revision and supplied screenshot
+
+The user's Chrome screenshot confirms that the original compact house renders and that the page reports its 13 components. It does not verify dragging, zooming, pointer picking, or performance. The simple house is a deliberately small source model; its appearance is not evidence of a low geometry-detail ceiling in That Open.
+
+The revised page includes the official school architecture model used by That Open's Highlighter/rendering examples. The pinned unchanged `school_arq.frag` is 3,391,365 bytes; its Git blob hash matches upstream. The data API returns **5,512 display components**, with a GlobalId for each one, including 100 doors, 24 windows, 176 columns, 29 slabs, one roof and other architectural elements. These are source categories, not measured engineering quantities. The school structural IFC is also offered for the complete import/conversion test. It is a different discipline model and is not interchangeable with the architecture sample.
+
+The adapter now uses `PostproductionRenderer`, color/edge/ambient-occlusion styling, SMAA, a grid, camera presets and selectable basic rendering. The app still leaves the library attribution visible. The larger viewport and right-hand property inspector address the cramped initial layout. No decorative geometry or generated facade details are substituted for the source model.
+
+Production build and the four existing data/calculation tests pass. The architecture Fragments identity check passes. Chrome automation still exits before initialization, so the revised WebGL styling, camera controls, expanded layout and pointer picking remain **unverified in-browser**. Compare using the same official architecture Fragments model and renderer style before attributing differences to the engine. Roof usability, greening overlays and carbon data integration remain outside this revision.
+
+The structural school IFC check returns IFC4, 1,548 source geometry entries, **1,526 converted display components**, a 695,546-byte Fragments asset, and no missing converted GlobalIds. The source and converted counts are distinct stages.
