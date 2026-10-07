@@ -99,6 +99,6 @@ The residential source is stored as `Schependomlaan.ifc.gz` because GitHub's blo
 
 ## Camera interaction tuning
 
-The existing Camera Controls instance uses rotation speed 1.6, truck speed 3 and dolly speed 2.2. Smooth time is reduced to 0.1 seconds, with 0.035 seconds during dragging, to reduce perceived input lag. Cursor-centred dollying remains enabled. Left drag orbits, right drag pans and the wheel zooms; the footer states these controls explicitly.
+The existing Camera Controls instance uses rotation speed 0.9, truck speed 1.8 and dolly speed 2.2. Drag speeds were reduced after user review of the initially faster navigation, while retaining the shorter damping for prompt response. Smooth time is 0.1 seconds, with 0.035 seconds during dragging. Cursor-centred dollying remains enabled. Left drag orbits, right drag pans and the wheel zooms; the footer states these controls explicitly.
 
 Camera `wake`/`sleep` events temporarily disable postproduction throughout movement and damping, including wheel and pinch input. Once motion ends, the selected shaded or technical style returns; basic mode stays basic even if chosen during movement. This reduces work per moving frame without lowering the stationary render resolution or changing model geometry. No dependency or framework change is required. Build checks verify integration; actual pointer feel and frame rate still require browser review.

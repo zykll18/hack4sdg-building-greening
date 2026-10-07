@@ -26,9 +26,9 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     world.renderer.three.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     world.camera = new OBC.OrthoPerspectiveCamera(components);
     const controls = world.camera.controls;
-    controls.azimuthRotateSpeed = 1.6;
-    controls.polarRotateSpeed = 1.6;
-    controls.truckSpeed = 3;
+    controls.azimuthRotateSpeed = 0.9;
+    controls.polarRotateSpeed = 0.9;
+    controls.truckSpeed = 1.8;
     controls.dollySpeed = 2.2;
     controls.smoothTime = 0.1;
     controls.draggingSmoothTime = 0.035;
