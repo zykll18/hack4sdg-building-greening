@@ -1,0 +1,9 @@
+{
+  "name": "hack4sdg-building-greening",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "test": "node --test"
+  }
+}
