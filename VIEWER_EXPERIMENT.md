@@ -45,3 +45,19 @@ The adapter now uses `PostproductionRenderer`, color/edge/ambient-occlusion styl
 Production build and the four existing data/calculation tests pass. The architecture Fragments identity check passes. Chrome automation still exits before initialization, so the revised WebGL styling, camera controls, expanded layout and pointer picking remain **unverified in-browser**. Compare using the same official architecture Fragments model and renderer style before attributing differences to the engine. Roof usability, greening overlays and carbon data integration remain outside this revision.
 
 The structural school IFC check returns IFC4, 1,548 source geometry entries, **1,526 converted display components**, a 695,546-byte Fragments asset, and no missing converted GlobalIds. The source and converted counts are distinct stages.
+
+## Additional architectural IFC models
+
+All three downloaded source files passed the WebIFC-to-Fragments data check. Counts below distinguish source geometry entries from converted selectable/display components. All converted display components retain GlobalIds.
+
+| File | Schema | Original bytes | Source geometry entries | Converted display components | Fragments bytes |
+| --- | --- | ---: | ---: | ---: | ---: |
+| KIT-Office.ifc | IFC4 | 10,934,237 | 821 | 784 | 1,532,607 |
+| KIT-FZK-Haus.ifc | IFC4 | 2,570,803 | 103 | 90 | 247,362 |
+| Schependomlaan.ifc | IFC2X3 | 49,286,967 | 3,643 | 3,510 | 6,454,680 |
+
+The Schependomlaan checksum matches the pinned source LFS pointer. KIT originals have recorded download checksums and source URLs. KIT source describes its office and house as fictional examples; the Schependomlaan publisher documents a project-based architectural design model and associated construction/as-built data.
+
+Locally generated depth-rendered PNG previews show the downloaded placed geometry with simple shading, which was visually inspected: the office has a multi-storey windowed envelope and curved roof, the residential model has masonry-colored walls, dormers and upper flat roof geometry, and the small house has a pitched roof and windows/doors. These are static data-derived previews, not browser screenshots or evidence of FPS/picking. They do not establish that a roof is suitable for greening. The application offers these models for browser review; revised browser rendering and interaction remain unverified.
+
+For packaging verification, the residential IFC was gzip-compressed and decompressed byte-for-byte identically. The existing asset-preparation script verifies its source SHA-256 before serving/building it. This storage change does not reduce geometry or alter component identities.

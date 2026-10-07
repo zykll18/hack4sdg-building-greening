@@ -10,9 +10,12 @@ let importing = false;
 let areaEdited = false;
 let loadedModel = null;
 const samples = {
-  'school-arq': { name: 'school_arq.frag', format: 'frag', description: 'Official That Open architecture model. Preconverted Fragments for visual comparison.' },
-  'school-str': { name: 'school_str.ifc', format: 'ifc', description: 'Official That Open structural school model. Tests the full IFC import pipeline; facade finishes are not included.' },
-  'test-house': { name: 'Building-Architecture.ifc', format: 'ifc', description: 'Compact buildingSMART test house. 13 display components for quick import and identity checks.' }
+  'kit-office': { name: 'KIT-Office.ifc', format: 'ifc', preview: 'KIT-Office-preview.png', source: 'https://www.ifcwiki.org/index.php?title=KIT_IFC_Examples', description: 'Architectural office design example from KIT: exterior walls, windows and roof geometry. Fictional design, not a verified built project. 10.9 MB.' },
+  'schependomlaan': { name: 'Schependomlaan.ifc', format: 'ifc', preview: 'Schependomlaan-preview.png', source: 'https://github.com/buildingsmart-community/Community-Sample-Test-Files/tree/main/IFC%202.3.0.1%20%28IFC%202x3%29/Schependomlaan', description: 'ROOT architectural design model for the Schependomlaan residential project. Published with project and construction data. 49.3 MB; conversion can take longer.' },
+  'kit-house': { name: 'KIT-FZK-Haus.ifc', format: 'ifc', preview: 'KIT-FZK-Haus-preview.png', source: 'https://www.ifcwiki.org/index.php?title=KIT_IFC_Examples', description: 'KIT architectural house design example, with windows, doors and pitched roof. Fictional design; compact import test. 2.6 MB.' },
+  'school-arq': { name: 'school_arq.frag', format: 'frag', source: 'https://github.com/ThatOpen/engine_components/tree/8479a7c5c6a3c0cf8c7ceab1d1fb329a3f7d1922/resources', description: 'Official That Open architecture model. Preconverted Fragments for visual comparison.' },
+  'school-str': { name: 'school_str.ifc', format: 'ifc', source: 'https://github.com/ThatOpen/engine_components/tree/8479a7c5c6a3c0cf8c7ceab1d1fb329a3f7d1922/resources', description: 'Official That Open structural school model. Tests the full IFC import pipeline; facade finishes are not included.' },
+  'test-house': { name: 'Building-Architecture.ifc', format: 'ifc', source: 'https://github.com/buildingSMART/Sample-Test-Files', description: 'Compact buildingSMART test house. 13 display components for quick import and identity checks.' }
 };
 
 function render() {
@@ -125,7 +128,7 @@ async function loadSample() {
 }
 $('load-sample').addEventListener('click', loadSample);
 $('empty-load-sample').addEventListener('click', () => {
-  $('sample-model').value = 'school-arq';
+  $('sample-model').value = 'kit-office';
   updateSampleDescription();
   void loadSample();
 });
@@ -133,8 +136,13 @@ function updateSampleDescription() {
   const sample = samples[$('sample-model').value];
   $('sample-description').textContent = sample.description;
   $('sample-download').href = `/samples/${sample.name}`;
+  $('sample-source').href = sample.source;
+  $('sample-preview').hidden = !sample.preview;
+  if (sample.preview) $('sample-preview').src = `/samples/${sample.preview}`;
+  else $('sample-preview').removeAttribute('src');
 }
 $('sample-model').addEventListener('change', updateSampleDescription);
+updateSampleDescription();
 for (const [id, direction] of [['view-iso', 'iso'], ['view-top', 'top']]) $(id).addEventListener('click', async () => {
   try { await viewer?.setView(direction); }
   catch (error) { showStatus(`Could not change view: ${error.message}`); }

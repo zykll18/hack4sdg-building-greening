@@ -40,3 +40,9 @@ The cost/carbon comparison still uses two **illustrative** scenarios and a separ
 ### Detailed model display
 
 The workspace now provides a large 3D viewport, right-hand component inspector, model-category counts, roof and 3D camera views, an expandable viewport, a ground grid, and shaded/technical/basic rendering. These reuse the installed That Open components. Basic rendering is available when GPU cost is a concern. The cost/carbon comparison remains below the model as an independent illustrative calculation; it is not a change to the displayed geometry.
+
+### Architectural sample choices
+
+The sample picker additionally offers **KIT office**, **Schependomlaan residential project**, and **KIT house** as original architectural IFC files. KIT's designs are labelled fictional; the residential model has documented project provenance. Each has a locally generated static geometry preview, source link, download, attribution and data-check results. The residential source is 49.3 MB, so conversion may take longer. See `public/samples/README.md` and `VIEWER_EXPERIMENT.md` for permissions and provenance. These samples help assess model shape; they do not validate roof usability or engineering design.
+
+The larger residential IFC is stored losslessly compressed in Git. The normal development/build commands automatically restore and checksum its original bytes using Node built-ins, so no extra download or package installation is required.

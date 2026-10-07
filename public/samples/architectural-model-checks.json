@@ -1,0 +1,43 @@
+{
+  "retrievedOn": "2026-10-07",
+  "files": [
+    {
+      "file": "KIT-Office.ifc",
+      "bytes": 10934237,
+      "sha256": "cfb2124497b25d9a72101075e84be0feb44ff669cb1bd3251be11efebeea945c"
+    },
+    {
+      "file": "KIT-FZK-Haus.ifc",
+      "bytes": 2570803,
+      "sha256": "70cc8ff245fc0894201d96496c031005a5cbd7a96b22d8a1b87c5a883fb77994"
+    },
+    {
+      "file": "Schependomlaan.ifc",
+      "bytes": 49286967,
+      "sha256": "2c3565ca1904f2aa61adab92024cf3755b2c5b21a498144d3094d7cb58cebec7"
+    }
+  ],
+  "checks": {
+    "KIT-Office.ifc": {
+      "schema": "IFC4",
+      "sourceGeometryEntries": 821,
+      "displayComponents": 784,
+      "fragmentBytes": 1532607,
+      "missingDisplayGlobalIds": 0
+    },
+    "KIT-FZK-Haus.ifc": {
+      "schema": "IFC4",
+      "sourceGeometryEntries": 103,
+      "displayComponents": 90,
+      "fragmentBytes": 247362,
+      "missingDisplayGlobalIds": 0
+    },
+    "Schependomlaan.ifc": {
+      "schema": "IFC2X3",
+      "sourceGeometryEntries": 3643,
+      "displayComponents": 3510,
+      "fragmentBytes": 6454680,
+      "missingDisplayGlobalIds": 0
+    }
+  }
+}
