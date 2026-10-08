@@ -9,6 +9,52 @@ let viewer;
 let importing = false;
 let areaEdited = false;
 let loadedModel = null;
+const workspacePanels = [...document.querySelectorAll('.workspace-panel')];
+const panelLaunchers = [...document.querySelectorAll('.workspace-dock [data-panel]')];
+
+function syncPanelLaunchers() {
+  for (const launcher of panelLaunchers) {
+    launcher.setAttribute('aria-expanded', String($(launcher.dataset.panel).open));
+  }
+}
+
+function closePanel(panel, { restoreFocus = true } = {}) {
+  if (!panel?.open) return;
+  panel.close();
+  syncPanelLaunchers();
+  if (restoreFocus) panelLaunchers.find((button) => button.dataset.panel === panel.id)?.focus();
+}
+
+function openPanel(id, { focus = true } = {}) {
+  const panel = $(id);
+  if (panel.open) return;
+  const previousFocus = document.activeElement;
+  for (const other of workspacePanels) closePanel(other, { restoreFocus: false });
+  // Nonmodal dialogs leave the model interactive; only the panel occupies pointer space.
+  panel.show();
+  syncPanelLaunchers();
+  if (!focus) (previousFocus === document.body ? $('bim-container') : previousFocus)?.focus({ preventScroll: true });
+}
+
+for (const button of document.querySelectorAll('[data-panel]')) button.addEventListener('click', () => {
+  const panel = $(button.dataset.panel);
+  if (panel.open) closePanel(panel);
+  else openPanel(panel.id);
+  if (button.classList.contains('text-button')) {
+    document.querySelector('.input-details').open = true;
+    $('area').focus();
+  }
+});
+for (const button of document.querySelectorAll('[data-close-panel]')) button.addEventListener('click', () => closePanel(button.closest('dialog')));
+for (const panel of workspacePanels) panel.addEventListener('close', syncPanelLaunchers);
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape' || event.defaultPrevented) return;
+  const panel = workspacePanels.find((item) => item.open);
+  if (panel) {
+    event.preventDefault();
+    closePanel(panel);
+  }
+});
 const samples = {
   'kit-office': { name: 'KIT-Office.ifc', format: 'ifc', preview: 'KIT-Office-preview.png', source: 'https://www.ifcwiki.org/index.php?title=KIT_IFC_Examples', description: 'Architectural office design example from KIT: exterior walls, windows and roof geometry. Fictional design, not a verified built project. 10.9 MB.' },
   'schependomlaan': { name: 'Schependomlaan.ifc', format: 'ifc', preview: 'Schependomlaan-preview.png', source: 'https://github.com/buildingsmart-community/Community-Sample-Test-Files/tree/main/IFC%202.3.0.1%20%28IFC%202x3%29/Schependomlaan', description: 'ROOT architectural design model for the Schependomlaan residential project. Published with project and construction data. 49.3 MB; conversion can take longer.' },
@@ -48,6 +94,7 @@ for (const id of ['area', 'years', 'budget']) $(id).addEventListener('input', ()
 });
 
 function showSelection(selection) {
+  $('selection-dot').hidden = !selection;
   const panel = $('selection-details');
   panel.replaceChildren();
   if (!selection) {
@@ -75,6 +122,7 @@ function showSelection(selection) {
   content.textContent = JSON.stringify(selection.properties, null, 2);
   properties.append(summary, content);
   panel.append(details, properties);
+  openPanel('inspector-panel', { focus: false });
 }
 
 function refreshImportControls() {
@@ -102,7 +150,10 @@ async function importFile(file) {
   if (!viewer || importing) return;
   importing = true;
   refreshImportControls();
-  try { await viewer.openIfc(file); }
+  try {
+    await viewer.openIfc(file);
+    closePanel($('project-panel'));
+  }
   catch (error) { showStatus(`IFC import failed: ${error.message}`); }
   finally { importing = false; refreshImportControls(); }
 }
@@ -123,6 +174,7 @@ async function loadSample() {
     if (!response.ok) throw new Error(`Sample download returned HTTP ${response.status}`);
     const file = new File([await response.arrayBuffer()], sample.name);
     await (sample.format === 'ifc' ? viewer.openIfc(file) : viewer.openFragments(file));
+    closePanel($('project-panel'));
   } catch (error) { showStatus(`Could not load the sample: ${error.message}. You can select a local IFC file instead.`); }
   finally { importing = false; refreshImportControls(); }
 }
@@ -152,11 +204,6 @@ $('render-style').addEventListener('change', (event) => {
   catch (error) { showStatus(`Could not change rendering: ${error.message}`); }
 });
 $('show-grid').addEventListener('change', (event) => viewer?.setGrid(event.target.checked));
-$('focus-viewer').addEventListener('click', () => {
-  const expanded = $('workspace').classList.toggle('focus-mode');
-  $('focus-viewer').textContent = expanded ? 'Exit expanded view' : 'Expand view';
-  $('focus-viewer').setAttribute('aria-pressed', String(expanded));
-});
 for (const [id, method] of [['fit-model', 'fit'], ['clear-selection', 'clearSelection']]) {
   $(id).addEventListener('click', async () => {
     try { await viewer?.[method](); }
@@ -207,6 +254,7 @@ try {
   });
   showStatus('3D viewer ready. Select an IFC file or load the building sample.');
   refreshImportControls();
+  void loadSample();
 } catch (error) {
   showStatus(`Could not initialize the 3D viewer: ${error.message}`);
 }

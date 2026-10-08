@@ -60,4 +60,10 @@ The Schependomlaan checksum matches the pinned source LFS pointer. KIT originals
 
 Locally generated depth-rendered PNG previews show the downloaded placed geometry with simple shading, which was visually inspected: the office has a multi-storey windowed envelope and curved roof, the residential model has masonry-colored walls, dormers and upper flat roof geometry, and the small house has a pitched roof and windows/doors. These are static data-derived previews, not browser screenshots or evidence of FPS/picking. They do not establish that a roof is suitable for greening. The application offers these models for browser review; revised browser rendering and interaction remain unverified.
 
+## Full-viewport workspace review
+
+The model is now the page background, with four initially closed nonmodal panels. The office example loads automatically. Open Project to change model or comparison inputs; select a component to open Inspect; open Compare for the illustrative results and View for camera/render settings. Check that opening a second panel closes the first, closing/Escape returns focus to the dock, uncovered model space still supports navigation, and input values survive closing/reopening. On a narrow viewport, panels use internal scrolling above the dock.
+
+Production build, existing calculation/identity tests and static DOM ID/panel-target checks passed. Native Chrome navigation confirmed the new page title, but its accessibility response omitted the page contents and screenshots returned a uniform blank frame, so visual layout, pointer interaction and native-dialog behavior could not be verified through that tool. This is a browser-observation limitation, not evidence of successful rendering or a diagnosis of an application rendering failure.
+
 For packaging verification, the residential IFC was gzip-compressed and decompressed byte-for-byte identically. The existing asset-preparation script verifies its source SHA-256 before serving/building it. This storage change does not reduce geometry or alter component identities.

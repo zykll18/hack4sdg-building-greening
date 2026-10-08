@@ -39,7 +39,7 @@ The cost/carbon comparison still uses two **illustrative** scenarios and a separ
 
 ### Detailed model display
 
-The workspace now provides a large 3D viewport, right-hand component inspector, model-category counts, roof and 3D camera views, an expandable viewport, a ground grid, and shaded/technical/basic rendering. These reuse the installed That Open components. Basic rendering is available when GPU cost is a concern. The cost/carbon comparison remains below the model as an independent illustrative calculation; it is not a change to the displayed geometry.
+The model fills the page as an interactive background. The locally bundled KIT office example opens by default. The bottom dock opens Project, Inspect, Compare and View as floating panels, all initially closed. Project contains IFC uploads, sample choices, model contents and comparison inputs. Selecting a model component opens Inspect. Compare contains independent illustrative cost/carbon calculations; View contains camera, grid and rendering settings. Close a panel with its close button, the same dock button or Escape. The uncovered model remains interactive, and closing a panel preserves data and camera position. No extra UI framework is introduced.
 
 ### Architectural sample choices
 
