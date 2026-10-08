@@ -1,110 +1,62 @@
-# Architecture design (prototype)
+# Building Greening — Presentation Architecture
 
-## Goal and boundary
+## Required experience
 
-The first demo helps a building professional compare two green-roof concepts for one authorised IFC model. It is a decision-support prototype. A green overlay is a proposed intervention, not a structural design, a modified IFC deliverable, or proof of net-zero certification.
-
-## Data flow
+A professional opens an authorized IFC building, defines roof, facade, balcony/terrace and ground regions, confirms their use and usable areas, compares two complete planting plans on the same model, switches before/after, and exports a consistent report and machine-readable handoff. IFC geometry remains the interactive page background. Project, Inspect, Compare and View are initially closed nonmodal panels; closing them preserves the model, inputs and camera.
 
 ```text
-Architect / BIM coordinator exports IFC
-             |
-             v
-That Open viewer -> selected roof ID and IFC properties
-             |
-             v
-Normalize quantities and units -> user verifies missing inputs
-             |
-             v
-Deterministic baseline and scenario calculations
-             |
-             v
-Constraint-checked scenario proposals -> 3D overlay and comparison report
+IFC / architectural sample
+          ↓
+That Open display geometry + stable GlobalId + model content hash
+          ↓
+Select component / choose candidate / define ground rectangle
+          ↓
+Extract display face → optional edge strip → user confirms type and usable area
+          ↓
+Shared region contract
+          ↓
+Light-touch plan / Landscape mix (systems for all four region types)
+          ↓
+Independent 3D overlays + deterministic region/aggregate calculations
+          ↓
+Before/after on original model + HTML report + JSON handoff
 ```
 
-The developer or building owner reviews the options. A qualified professional must review structural loading, waterproofing, drainage, and maintenance before implementation.
+## Stack and module ownership
 
-## Shared contract
+The browser app retains plain JavaScript, Vite, Three.js and the installed That Open Components/Components Front/Fragments/WebIFC/Camera Controls packages. No backend, UI framework replacement, new runtime dependency or directory change is introduced. Local files remain in the browser; bundled samples carry source links and redistribution notices.
 
-Every result must carry the project/model version, stable roof element ID, area in square metres, input provenance (`ifc`, `user-confirmed`, or `assumed`), scenario ID, calculation version, and factors used. All carbon results must state their scope and units. A scenario result must preserve any unresolved engineering checks and must not silently turn an assumption into a measured fact.
+- `src/adapters/bim-viewer.js` (A) owns initialization, IFC/Fragments import, camera, selection, candidate lookup, region preparation/confirmation, independent overlay rendering, model replacement and cleanup.
+- `src/adapters/greening-geometry.js` (A) handles world transforms, face filtering, edge-strip clipping and area-proportional visual coverage. Separating geometry from browser lifecycle permits meaningful tests against original IFC triangles.
+- `src/domain/greening-plan.js` (B/C integration) defines two presentation profiles for all four region types and aggregates the existing deterministic calculator. The original roof-shaped calculator input is an internal compatibility adapter; exported results use region identifiers. This avoids replacing working arithmetic or adding a second calculation engine.
+- `src/domain/calculate.js` (B) retains unit/provenance validation and deterministic intervention arithmetic.
+- `web/` (D) owns floating panels, region confirmation/list/removal, plan selection, before/after controls, comparison period/budget and report/JSON exports.
+- `scripts/check-greening.mjs` tests original IFC geometry through face extraction, coverage and calculation without asserting browser or engineering acceptance.
 
-## Module boundaries
+## Region contract and provenance
 
-- **BIM and 3D viewer:** That Open Components loads and displays IFC geometry, exposes element IDs/properties, and shows an independent greening overlay. This workstream owns the viewer component interface.
-- **Building data and calculation:** Normalizes IFC quantities, records assumptions, and calculates a reproducible baseline and scenario impacts. The language model never performs the final arithmetic.
-- **Scenario and AI:** Suggests two green-roof options in a structured format, explains trade-offs, and routes proposals through explicit constraints.
-- **Frontend and integration:** Builds project upload, input confirmation, comparison dashboard, and report screens, then integrates the viewer and calculation/scenario outputs.
+A confirmed region includes `id`, project/model version, region type, IFC GlobalId/local ID when present, display geometry source, optional edge-strip crop or ground rectangle placement, display area estimate and a separately user-confirmed `usableArea` quantity. Display geometry comes from the loaded IFC, but its area is an estimate assuming the renderer coordinate unit is metres. The proposed role and usable area require explicit confirmation. IFC category matches are candidates, not automatic roof/terrace suitability decisions. Ground regions are user-defined design rectangles and are never labelled IFC boundaries or owned land.
 
-The first implementation may run locally in the browser with a single sample IFC. A backend, database, authentication, and external AI service should be introduced only when the demo requires them. Before adding a backend dependency, changing directories or frameworks, or defining custom error codes, document the reason and update this file.
+The viewer rejects missing/current-model selection, geometry without a suitable display face, invalid dimensions, stale drafts, duplicate component assignment and overlapping ground rectangles. Confirmed usable area must fit within the selected display surface. Roof/terrace extraction keeps upward-facing triangles; facade extraction keeps outward-facing near-vertical triangles. User-selected edge strips clip existing triangles and preserve their holes/slopes. They do not infer an approved balcony boundary.
 
-## Runtime and ownership
+Each overlay uses confirmed area / extracted display area × system coverage fraction. Triangles shrink about their centroid by the square root of that fraction, producing the same proportional surface area as the deterministic coverage calculation. Green surfaces and small planting markers are concept visualization, not construction assemblies, species selection or a photoreal planting simulation. The original model object and source IFC bytes are never edited. Before hides overlays; After and plan changes rebuild them using the same region data. Model replacement/disposal clears drafts, selections, regions, GPU overlay geometries and materials.
 
-The browser application uses plain JavaScript, Vite, and the selected That Open viewer foundation. Node's built-in test runner verifies the pure calculation and selection-data modules. A backend, database, and UI framework are deferred until a specific integration requirement justifies them. Dependency reasons for the first IFC milestone are recorded below.
+## Calculations and report
 
-```text
-web/                    D: page, viewer mounting, interactions
-src/adapters/            A: IFC viewing, selection and data handoff
-src/domain/contract.js   shared identifiers, units, provenance
-src/domain/calculate.js  B: deterministic cost/carbon arithmetic
-src/data/demo.js         C: two labelled illustrative scenarios
-tests/                  unit and evidence-boundary checks
-scripts/                generated WASM assets and IFC integration checks
-```
+Each plan uses the same regions, comparison period and budget. Per-region cost is installation plus period maintenance. Carbon difference is installation embodied emissions minus assumed avoided operational emissions over the period. Presentation profiles currently contain assumed factors, with explicit source/provenance. Terrace and ground profiles assume zero avoided operational emissions; no unsupported tree sequestration term is added. Aggregate budget checks use total installation cost across regions. Duplicate IDs or mixed model versions are rejected.
 
-The viewer displays actual parsed IFC geometry and attributes. The numerical comparison remains a separate example roof with an explicit `DEMO-ROOF-01` identifier and `assumed` provenance. A user-edited example area becomes `user-confirmed` only as a UI input label; the page still asks for professional verification. Selecting an IFC element does not yet populate usable roof area. The next integration step is a roof-quantity handoff followed by explicit confirmation before calculation.
+The HTML report and JSON handoff are generated from the same current region/plan inputs used on screen. They retain model version, IFC identity, ground placement/crops, confirmed areas, plan coverage, factors, calculation versions, totals, scope and unresolved checks. Names/properties are escaped in exported HTML. Report generation rejects missing regions or invalid comparison inputs. No external AI inference, government approval, certification or marketplace transaction is claimed by these exports; those integrations remain separate team responsibilities.
 
-The first calculation covers **only the proposed green-roof intervention**. For a horizon of `N` years, covered area is usable roof area × scenario coverage. Cost is installation plus `N` years of maintenance. Carbon difference is installation embodied emissions minus `N` years of assumed avoided operational emissions. The factors in `src/data/demo.js` are illustrative placeholders without external evidence; outputs must not be presented as measured performance, whole-building baseline, carbon offsets, or net-zero certification. Future work must add source-backed factors, local energy modelling and maintenance/end-of-life effects before making stronger claims. Carbon sequestration is excluded entirely from this first calculation.
+## Rendering and interface
 
-Workstream A's first viewer handoff accepts an IFC file and returns the content-based model version, file name, and display component count. Its selection callback returns IFC identity and attributes. Roof-candidate quantities and independent scenario overlays will extend this port in the next milestone. Workstream B owns quantity validation and factor provenance. Workstream C may use AI to propose and explain options, but submits structured parameters to B's deterministic calculation. Workstream D keeps the UI synchronized with those results. There are no custom error codes; standard JavaScript errors indicate invalid inputs.
+The PostproductionRenderer uses shaded edges/ambient occlusion with technical/basic alternatives. Camera motion events disable expensive passes while moving and restore the selected style afterward. Rotation speed is 0.9, truck speed 1.8, dolly speed 2.2, smooth time 0.1 seconds and dragging smooth time 0.035 seconds. Full viewport size stays stable while panels open. Fit includes planned ground regions. Native dialog close buttons, same-button toggles and Escape support return focus; component selection opens Inspect without taking focus from the model. Narrow screens constrain panels above the dock with internal scrolling; reduced-motion preferences disable animations.
 
-## Task A: IFC viewer foundation
+## Assets and licenses
 
-This milestone replaces the concept illustration with actual IFC geometry and component selection. Vite is introduced to resolve npm modules, bundle the Fragments worker, and build the browser application. The application remains plain JavaScript; no UI framework or backend is introduced. `@thatopen/components` provides the scene and IFC loader, `@thatopen/components-front` provides selection highlighting, `@thatopen/fragments` supplies the matching worker, `three` supplies rendering primitives, `web-ifc` supplies IFC/WASM parsing, and `camera-controls` satisfies the viewer camera peer dependency. Versions are pinned and a lockfile records the resolved dependency tree.
+That Open Components is the implementation foundation; xeokit-bim-viewer is a UI reference only. Installed Components/Components Front/Fragments/Three.js/Camera Controls/Vite use MIT; WebIFC uses MPL-2.0 and its WASM/license are copied unchanged during asset preparation. All sample-specific sources, source revisions, checksums and redistribution notices are recorded in `public/samples/README.md`.
 
-Vite serves `web/` as its entry directory. `public/wasm/` contains generated parser assets copied from the installed `web-ifc` package by `scripts/prepare-assets.mjs`; these generated assets are not committed. The previous custom development server is replaced by Vite's standard development/preview commands. This avoids introducing a second custom asset loader or a backend for the milestone.
+KIT office/house designs are fictional architectural examples; Schependomlaan is a documented residential design dataset. They are not claims of engineering approval. Schependomlaan is stored losslessly gzipped to fit GitHub's API transport constraint; Node built-ins restore its original IFC and verify the published SHA-256 before development/build. The large residential source is fetched only when selected. Static preview PNGs come from actual placed geometry and are distinct from browser screenshots.
 
-The viewer adapter owns initialization, file replacement, click selection, properties, camera fit, and cleanup. Selected elements are handed off with model version, IFC GlobalId where available, local selection ID, name, category, and source properties. It does not automatically classify the selected component as usable roof area or feed guessed quantities into the calculator. IFC viewing and the illustrative carbon comparison remain labelled independently until the quantity-confirmation workstream is integrated. The official That Open sample can be loaded for testing; its download source is shown in the UI.
+## Acceptance boundary
 
-## Architectural test sample and import coverage
-
-`public/samples/` bundles buildingSMART's compact IFC4 `Building-Architecture.ifc` with its CC BY 4.0 notice, exact source revision, and attribution. A local sample removes external network variability from the initial viewer experiment. The sample includes an `IfcRoof` aggregate, two roof `IfcSlab` components, walls, and a chimney. The selectable roof geometry belongs to the slabs; the aggregate roof identity is retained as data and must not be presented as a missing roof just because it is not a separate rendered component.
-
-The default Fragments importer is retained to match the official IFC-loading baseline. In this sample, the parser reports no placed geometry for the aggregate roof or chimney; the roof slabs carry the roof geometry. The data-only smoke check reports source geometry entries separately from converted display components and verifies that each converted component retains its IFC GlobalId. Different counts are not automatically evidence of missing geometry. These checks do not validate browser WebGL output or pointer picking.
-
-## References and licenses
-
-[That Open Components](https://github.com/ThatOpen/engine_components) is the selected viewer foundation. [xeokit-bim-viewer](https://github.com/xeokit/xeokit-bim-viewer) is a user-interface reference only. The installed Components, Components Front, Fragments, Three.js, Camera Controls, and Vite packages use MIT; [web-ifc](https://github.com/ThatOpen/engine_web-ifc) uses MPL-2.0 and its WASM is redistributed unchanged with the package license copied alongside it. Do not copy xeokit implementation into this prototype without an explicit license review.
-
-## Task A: detailed model review workspace
-
-The review page now prioritizes a wide 3D viewport, with model inputs/content counts on the left, component properties on the right, and the illustrative scenario comparison below. The layout remains plain JavaScript/CSS and uses the existing dependency set. No backend, framework replacement, or new dependency is introduced.
-
-The viewer replaces `SimpleRenderer` with That Open's already-installed `PostproductionRenderer`. Its color/edge/ambient-occlusion preset and SMAA give BIM geometry clearer boundaries and depth. Technical drawing and basic rendering are selectable; basic rendering disables postproduction for slower devices. An isolated That Open grid is placed below the model bounding box. Camera/model synchronization follows the official examples when projections change. Roof view changes the camera only; it does not identify or validate a roof automatically. Expanded view gives the same renderer more screen space and relies on its existing resize observer.
-
-Two official That Open school samples are bundled unchanged at revision `8479a7c5c6a3c0cf8c7ceab1d1fb329a3f7d1922`, with the repository's MIT license and source attribution. `school_arq.frag` is the same architecture model used in the official Highlighter/rendering examples. It demonstrates the richer model and its IFC-derived component data, but bypasses IFC parsing because it has already been converted. `school_str.ifc` tests the full IFC-to-Fragments path for the structural school model; its content is not the same architectural dataset. The compact buildingSMART house remains available for quick identity checks.
-
-Both input paths use the same model registration, content hash, geometry/category checks, selection callback, camera setup, and model replacement cleanup. The on-model contract now adds `sourceFormat` and counts of display components by category. The interface labels preconverted Fragments distinctly from IFC. It does not claim the architecture Fragments file is an original IFC deliverable, or that geometry detail supplies validated carbon or roof quantities.
-
-Default samples are hosted locally so the demo does not depend on external model downloads. They are loaded on request, rather than downloading all sample assets at application startup. Detailed-model rendering and interaction still require browser review; successful build/data checks alone cannot establish GPU performance or pointer picking.
-
-## Architectural sample selection
-
-The sample picker now offers two architectural KIT designs and the original Schependomlaan residential design IFC, alongside the earlier engine tests. These additions answer the need to evaluate building-envelope and roof geometry with clear source provenance. Samples remain within the existing `public/samples/` directory; no dependency, backend or directory restructuring is introduced. KIT's fictional design examples and the documented residential project are labelled distinctly in the UI.
-
-All three new paths exercise the same IFC-to-Fragments adapter used for project uploads. They are original IFC files, not substituted generated meshes. File names are local aliases; source bytes, retrieval dates, source links, permissions and checksums are documented. The 49.3 MB residential IFC loads only when selected; it is not fetched at application startup. Its larger parsing cost is shown in the picker description. Do not infer engineering approval or exact roof usability from import success.
-
-Static preview PNGs are build-independent sample assets made offline from the actual IFC geometry with a depth buffer. They support sample choice and do not stand in for browser verification. The preview-generation tools are not runtime app dependencies. The published source link and file download update with each sample choice. Existing view, inspection and illustrative calculation behavior remains shared across models.
-
-The residential source is stored as `Schependomlaan.ifc.gz` because GitHub's blob-upload API rejected the 49.3 MB original. The existing asset-preparation script uses Node's built-in zlib/crypto capabilities to restore the exact original IFC and verify its published SHA-256 before development or production builds. The generated original IFC is ignored by Git; the server and picker still expose its normal `.ifc` URL. This is offline transport/storage compression, not geometry simplification or a new runtime dependency.
-
-## Camera interaction tuning
-
-The existing Camera Controls instance uses rotation speed 0.9, truck speed 1.8 and dolly speed 2.2. Drag speeds were reduced after user review of the initially faster navigation, while retaining the shorter damping for prompt response. Smooth time is 0.1 seconds, with 0.035 seconds during dragging. Cursor-centred dollying remains enabled. Left drag orbits, right drag pans and the wheel zooms; the footer states these controls explicitly.
-
-Camera `wake`/`sleep` events temporarily disable postproduction throughout movement and damping, including wheel and pinch input. Once motion ends, the selected shaded or technical style returns; basic mode stays basic even if chosen during movement. This reduces work per moving frame without lowering the stationary render resolution or changing model geometry. No dependency or framework change is required. Build checks verify integration; actual pointer feel and frame rate still require browser review.
-
-## Model as the workspace background
-
-The interactive That Open canvas now fills the viewport behind a small project title and a bottom tool dock. Project inputs, component inspection, scenario comparison and view settings are closed by default. Native nonmodal dialogs show one floating panel at a time while keeping the uncovered model interactive. Buttons expose expanded state; close buttons and Escape return focus to the corresponding dock entry. Component selection opens the inspector without taking keyboard focus from the model. Closing a panel preserves its data and inputs and does not recreate the renderer or change the camera.
-
-The locally bundled KIT office example opens after viewer initialization so the initial screen contains a building. It remains a fictional architectural sample, labelled in Project with its source and download. Project uploads and other sample choices use the existing import pipeline; successful imports close the Project panel. Loading and failure status remain visible above the canvas. The prior expanded-view toggle is removed because the model always uses the full viewport. Small screens use bounded bottom panels with internal scrolling; reduced-motion preferences disable reveal animations. All implementation remains in the existing plain JavaScript/CSS page with no new dependency, backend or directory change. Illustrative comparison data and assumptions remain inside Compare until opened.
+A complete presentation flow requires real browser checks listed in `TEAM_TASKS.md`: region selection/confirmation, all four uses, plan/Before/After switching, period/budget changes, removal/model replacement and matching exports. Unit, geometry and build checks do not establish GPU performance, visual polish or pointer/dialog behavior. Engineering/factor validation remains disclosed in every result; a greening concept and intervention calculation do not establish whole-building net-zero status.

@@ -1,48 +1,31 @@
 # Building Greening Decision Support
 
-An IFC-first prototype for building professionals to compare green-roof options. The initial user is an architect, BIM coordinator, or sustainability designer; the developer or building owner reviews the resulting options.
+An IFC-based presentation workspace for building professionals to compare greening plans across roofs, facades, balconies/terraces and ground areas. Architects, BIM coordinators and sustainability designers prepare regions and scenarios; developers or building owners review the results.
 
-## MVP demonstration
+## Presentation flow
 
-An authorized project team exports an architectural IFC model. The user opens it in a That Open-based 3D workspace, selects a roof, verifies the usable area and missing project inputs, and compares two greening scenarios. The result shows the 3D overlay, cost and carbon assumptions, unresolved engineering checks, and a short report.
+1. Run `npm ci` and `npm run dev`, then open `http://127.0.0.1:5173/` (Node 20.19+ or 22.12+). The KIT office architectural example opens as a full-viewport interactive model.
+2. Open **Inspect**. Click a component or choose an IFC category candidate. Choose Roof, Facade or Balcony / terrace. Use an edge strip for an exposed portion of a larger slab; user confirmation determines the proposed use.
+3. Click **Review region surface**, verify/edit the usable area within the extracted surface and confirm its type/area. Click **Add region to both plans**.
+4. For **Ground / courtyard**, set rectangle dimensions and offsets before reviewing/confirming. The rectangle is user-defined design geometry, not an IFC site/ownership boundary.
+5. Open **Compare**, switch **Light-touch** / **Landscape mix**, and use **Before / After** on the model. Both plans use the same confirmed regions. Region removal updates both plans.
+6. In **Project**, edit the comparison period/budget or load another model. Replacement clears old regions and overlays.
+7. Download the HTML comparison report and JSON handoff. They retain current model/IFC identities, areas, systems, factors, checks and results for team integration.
 
-That Open Components is the selected BIM viewer foundation. The calculation and scenario logic are project-specific and remain separate from the viewer. A model overlay is a concept preview, not an edited construction BIM model or structural approval.
+A/B/C/D presentation responsibilities and browser acceptance are in [TEAM_TASKS.md](TEAM_TASKS.md); implementation and provenance boundaries are in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## Team
+## Verification
 
-See [TEAM_TASKS.md](TEAM_TASKS.md) for the four workstreams, deliverables, and integration contract.
+`npm test` runs deterministic calculation, identity, four-region aggregation, edge clipping and visual coverage area checks. `npm run build` produces the browser build. `node scripts/check-greening.mjs` exercises original KIT office IFC through geometry extraction, coverage and plan calculation without claiming browser or spatial suitability validation. `npm run test:ifc -- /path/to/file.ifc` verifies parser/conversion identities.
 
-## Current scope
+## Evidence boundaries
 
-- One permitted sample IFC and one roof area.
-- IFC import, component selection, and stable mapping to project data.
-- Two green-roof options with explicit assumptions and missing-data flags.
-- Deterministic cost and carbon comparison plus an explainable AI recommendation.
-- A complete, repeatable browser demo.
+Current costs/carbon factors are explicitly labelled presentation assumptions. Display mesh areas assume renderer units are metres and require user confirmation; confirmed area is not professional engineering approval. The comparison covers proposed interventions only, excludes plant carbon sequestration, and does not establish whole-building emissions or net-zero status. Structural loading, waterproofing, drainage, facade fixings, access/fire strategy, irrigation and land/utility availability remain unresolved checks.
 
-Photo-based modelling, voice input, supplier matching, and certification submission are later extensions.
+Scenario profiles are structured rules. No external AI service, government incentive approval, certification or marketplace transaction is claimed. Local IFC files are processed in the browser.
 
-## Starting points
+## Architectural samples and licensing
 
-- [That Open Components](https://github.com/ThatOpen/engine_components) — selected IFC/BIM viewer foundation.
-- [xeokit-bim-viewer](https://github.com/xeokit/xeokit-bim-viewer) — interaction-design reference only; its SDK is not part of this MVP.
+Project offers original KIT office/house IFC designs (explicitly fictional), the documented Schependomlaan residential design model, official That Open school architecture Fragments/structural IFC and the compact buildingSMART test house. Source links, byte hashes, license notices and local geometry previews are in `public/samples/README.md`. Schependomlaan's byte-identical original IFC is restored from the bundled lossless gzip by the asset-preparation script; its 49.3 MB conversion may take longer.
 
-## Run the current scaffold
-
-With Node.js 20.19+ or 22.12+, run `npm ci`, then `npm run dev` and open `http://127.0.0.1:5173/`. Run `npm test` for calculation/selection checks and `npm run build` for a production build. `npm run preview` serves that build locally.
-
-The Task A viewer loads a local IFC file, converts it to Fragments, displays real geometry, fits the camera, and supports click selection/highlighting. The selection panel shows name, IFC type, GlobalId when available, local ID, content-based model version, and source attributes. **Open sample model** offers the detailed official That Open school architecture Fragments model, the school structural IFC for conversion testing, and the compact buildingSMART IFC4 house. All three load locally without an external network download. The architecture sample is clearly labelled as preconverted IFC-derived Fragments, rather than an original IFC upload. Attribution and its CC BY 4.0 notice are in `public/samples/`. Selected local IFC files remain in the browser.
-
-For a data-only integration check, run `npm run test:ifc -- /path/to/model.ifc`. It validates source geometry, converts the file to Fragments, and checks converted display-component identities using the same engine data API. It does not replace a browser/WebGL interaction check. The buildingSMART sample returns 18 source geometry entries and 13 converted display components; see [VIEWER_EXPERIMENT.md](VIEWER_EXPERIMENT.md) for the measured results and comparison with official examples.
-
-The cost/carbon comparison still uses two **illustrative** scenarios and a separate demo roof. Selecting an IFC component does not confirm usable roof area or automatically update those calculations. Roof candidate selection, verified quantity handoff, greening overlays, sourced factors, AI proposals, and report export are the next integration tasks. See [ARCHITECTURE.md](ARCHITECTURE.md) for ownership and computation boundaries.
-
-### Detailed model display
-
-The model fills the page as an interactive background. The locally bundled KIT office example opens by default. The bottom dock opens Project, Inspect, Compare and View as floating panels, all initially closed. Project contains IFC uploads, sample choices, model contents and comparison inputs. Selecting a model component opens Inspect. Compare contains independent illustrative cost/carbon calculations; View contains camera, grid and rendering settings. Close a panel with its close button, the same dock button or Escape. The uncovered model remains interactive, and closing a panel preserves data and camera position. No extra UI framework is introduced.
-
-### Architectural sample choices
-
-The sample picker additionally offers **KIT office**, **Schependomlaan residential project**, and **KIT house** as original architectural IFC files. KIT's designs are labelled fictional; the residential model has documented project provenance. Each has a locally generated static geometry preview, source link, download, attribution and data-check results. The residential source is 49.3 MB, so conversion may take longer. See `public/samples/README.md` and `VIEWER_EXPERIMENT.md` for permissions and provenance. These samples help assess model shape; they do not validate roof usability or engineering design.
-
-The larger residential IFC is stored losslessly compressed in Git. The normal development/build commands automatically restore and checksum its original bytes using Node built-ins, so no extra download or package installation is required.
+The viewer reuses [That Open Components](https://github.com/ThatOpen/engine_components). [xeokit-bim-viewer](https://github.com/xeokit/xeokit-bim-viewer) supplies UI inspiration only. No xeokit implementation is included.

@@ -3,9 +3,10 @@ import * as OBC from '@thatopen/components';
 import * as OBF from '@thatopen/components-front';
 import workerUrl from '@thatopen/fragments/worker?url';
 import { normalizeSelection } from './selection-data.js';
+import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface } from './greening-geometry.js';
 
-/** Phase 1 port: real import and selection. Roof quantities and overlays come later. */
-export async function createBimViewer(container, { onSelection, onStatus, onModel }) {
+/** IFC display, confirmed greening regions, scenario overlays and frontend handoff. */
+export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {} }) {
   const components = new OBC.Components();
   const world = components.get(OBC.Worlds).create();
   let currentModel = null;
@@ -14,6 +15,14 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
   let selectionEpoch = 0;
   let loading = false;
   let displayIds = [];
+  let buildingBox;
+  let pendingRegion;
+  let regionSequence = 0;
+  let regionEpoch = 0;
+  const regions = new Map();
+  const overlays = new THREE.Group();
+  let activePlan = null;
+  let showAfter = false;
 
   try {
     world.scene = new OBC.SimpleScene(components);
@@ -22,6 +31,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       ambientLight: { color: new THREE.Color('#ffffff'), intensity: 1.1 },
       directionalLight: { color: new THREE.Color('#ffffff'), intensity: 1.8, position: new THREE.Vector3(40, 60, 25) }
     });
+    world.scene.three.add(overlays);
     world.renderer = new OBF.PostproductionRenderer(components, container);
     world.renderer.three.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     world.camera = new OBC.OrthoPerspectiveCamera(components);
@@ -107,6 +117,92 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     });
     highlighter.events.select.onClear.add(() => { selectionEpoch++; onSelection(null); });
 
+    function clearOverlayObjects() {
+      const geometries = new Set(), materials = new Set();
+      overlays.traverse((object) => {
+        if (object.geometry) geometries.add(object.geometry);
+        for (const material of [].concat(object.material ?? [])) materials.add(material);
+      });
+      overlays.clear();
+      for (const geometry of geometries) geometry.dispose();
+      for (const material of materials) material.dispose();
+    }
+    function renderOverlays() {
+      clearOverlayObjects();
+      if (!activePlan) return;
+      for (const { data, surface } of regions.values()) {
+        const profile = activePlan.profiles[data.type];
+        if (!profile) continue;
+        const fraction = Math.min(1, data.usableArea.value / surface.surfaceAreaM2 * profile.coverageFraction);
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(coveredSurface(surface, fraction), 3));
+        geometry.computeVertexNormals();
+        const material = new THREE.MeshStandardMaterial({ color: activePlan.id === 'light' ? '#729753' : '#427346', roughness: .95, side: THREE.DoubleSide });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.userData.regionId = data.id;
+        overlays.add(mesh);
+        const count = Math.min(48, surface.triangles.length);
+        const plants = new THREE.InstancedMesh(new THREE.ConeGeometry(.16, .5, 5), new THREE.MeshStandardMaterial({ color: '#31583c', roughness: 1 }), count);
+        const dummy = new THREE.Object3D();
+        const up = new THREE.Vector3(0, 1, 0);
+        for (let i = 0; i < count; i++) {
+          const triangle = surface.triangles[Math.floor(i * surface.triangles.length / count)];
+          const normal = new THREE.Vector3().fromArray(triangle.normal);
+          const center = new THREE.Vector3();
+          for (const point of triangle.points) center.add(new THREE.Vector3().fromArray(point));
+          center.multiplyScalar(1 / 3);
+          const scale = Math.min(1.5, Math.max(.15, Math.sqrt(triangle.area * fraction) * .5)) * (activePlan.id === 'landscape' ? 1.4 : .7);
+          dummy.position.copy(center).addScaledVector(normal, .035 + scale * .25);
+          dummy.quaternion.setFromUnitVectors(up, normal); dummy.scale.setScalar(scale); dummy.updateMatrix();
+          plants.setMatrixAt(i, dummy.matrix);
+        }
+        plants.instanceMatrix.needsUpdate = true;
+        overlays.add(plants);
+      }
+      overlays.visible = showAfter;
+    }
+    function publishRegions() { onRegions([...regions.values()].map(({ data }) => structuredClone(data))); }
+    function resetRegions() {
+      regionEpoch++; pendingRegion = null; regions.clear(); activePlan = null; showAfter = false;
+      clearOverlayObjects(); publishRegions();
+    }
+    async function prepareRegion({ type, selection, ground, crop }) {
+      if (!currentModel || loading) throw new Error('Load a model before planning a region');
+      if (!['roof','facade','terrace','ground'].includes(type)) throw new Error('Select a region type');
+      const model = currentModel, version = modelVersion, epoch = ++regionEpoch, selectionStamp = selectionEpoch;
+      pendingRegion = null;
+      const center = buildingBox.getCenter(new THREE.Vector3());
+      let surface, globalId = null, localId = null, name, geometrySource, placement;
+      if (type === 'ground') {
+        placement = { ...ground, x: center.x + ground.offsetX, z: buildingBox.max.z + ground.offsetZ, y: buildingBox.min.y + .04 };
+        surface = groundSurface(placement); name = `Courtyard region ${regionSequence + 1}`; geometrySource = 'user-defined rectangle beside the model; not an IFC site boundary';
+      } else {
+        if (!selection || selection.modelVersion !== version || !selection.globalId) throw new Error('Select an IFC component in the current model first');
+        const meshes = (await model.getItemsGeometry([selection.localId]))[0];
+        if (epoch !== regionEpoch || currentModel !== model || selectionStamp !== selectionEpoch) throw new Error('Selection changed while preparing the region');
+        model.object.updateMatrixWorld(true);
+        surface = extractGreeningSurface(meshes, model.object.matrixWorld, type, center);
+        surface = cropGreeningSurface(surface, crop);
+        globalId = selection.globalId; localId = selection.localId; name = selection.name;
+        geometrySource = 'IFC display triangles; selected use is user-defined, not engineering approval';
+      }
+      const id = `${version}:region:${++regionSequence}`;
+      const data = { id, projectId: 'LOCAL-BUILDING-REVIEW', modelVersion: version, type, globalId, localId, name, geometrySource, surfaceCrop: type === 'ground' ? null : crop, geometryAreaM2: surface.surfaceAreaM2, geometryAreaProvenance: 'assumed', geometryAreaSource: 'Display mesh estimate assuming model coordinates are metres; user confirmation required', placement: placement ?? null };
+      pendingRegion = { data, surface, selectionStamp };
+      return structuredClone(data);
+    }
+    function confirmRegion(id, area) {
+      if (!pendingRegion || pendingRegion.data.id !== id || pendingRegion.data.modelVersion !== modelVersion || loading) throw new Error('Review the region again before confirming');
+      if (pendingRegion.data.type !== 'ground' && pendingRegion.selectionStamp !== selectionEpoch) throw new Error('Selection changed; review the region again');
+      const { data, surface } = pendingRegion;
+      if (!Number.isFinite(area) || area <= 0 || area > surface.surfaceAreaM2 * 1.001) throw new RangeError('Confirmed usable area must be positive and within the displayed region');
+      if (data.globalId && [...regions.values()].some(({ data: other }) => other.globalId === data.globalId)) throw new Error('This component is already assigned; remove its existing region to change its use');
+      if (data.type === 'ground' && [...regions.values()].some(({ data: other }) => other.placement && Math.abs(other.placement.x - data.placement.x) < (other.placement.width + data.placement.width) / 2 && Math.abs(other.placement.z - data.placement.z) < (other.placement.depth + data.placement.depth) / 2)) throw new Error('Ground regions overlap; move this rectangle before adding it');
+      data.usableArea = { value: area, unit: 'm2', provenance: 'user-confirmed', source: 'User-confirmed usable area for the selected presentation region; professional verification unresolved' };
+      regions.set(id, { data, surface }); pendingRegion = null;
+      publishRegions(); renderOverlays(); return structuredClone(data);
+    }
+
     async function setView(direction) {
       if (!currentModel || loading) return;
       const sphere = await world.camera.getItemsBounding({ [currentModel.modelId]: new Set(displayIds) });
@@ -133,6 +229,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
           const version = `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
           await highlighter.clear('select');
           replacing = true;
+          resetRegions();
           if (currentModel) {
             world.scene.three.remove(currentModel.object);
             await fragments.core.disposeModel(currentModel.modelId);
@@ -154,6 +251,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
           const visibleIds = new Set(geometryIds);
           const categoryCounts = Object.entries(categories).map(([name, ids]) => ({ name, count: ids.filter((id) => visibleIds.has(id)).length })).filter(({ count }) => count > 0).sort((a, b) => b.count - a.count);
           const box = await model.getMergedBox(geometryIds);
+          buildingBox = box.clone();
           grid.three.position.y = box.min.y - 0.05;
           const sphere = box.getBoundingSphere(new THREE.Sphere());
           const center = sphere.center;
@@ -189,6 +287,21 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       openIfc: (file) => openFile(file, 'ifc'),
       openFragments: (file) => openFile(file, 'frag'),
       setView,
+      prepareRegion,
+      confirmRegion,
+      async listRegionCandidates(type) {
+        if (!currentModel || loading || type === 'ground') return [];
+        const model = currentModel, version = modelVersion;
+        const pattern = type === 'facade' ? /^IFCWALL/ : /^(IFCROOF|IFCSLAB)$/;
+        const ids = displayIds.filter((id) => pattern.test(categoryById.get(id)));
+        const [data, guids] = await Promise.all([model.getItemsData(ids), model.getGuidsByLocalIds(ids)]);
+        if (model !== currentModel || version !== modelVersion) return [];
+        return ids.map((localId, index) => normalizeSelection({ localId, modelVersion: version, globalId: guids[index], category: categoryById.get(localId), data: data[index] })).sort((a, b) => a.name.localeCompare(b.name));
+      },
+      removeRegion(id) { regions.delete(id); publishRegions(); renderOverlays(); },
+      setPlan(plan, after = true) { activePlan = plan; showAfter = after; renderOverlays(); },
+      setBeforeAfter(after) { showAfter = after; overlays.visible = Boolean(activePlan) && after; },
+      getRegions() { return [...regions.values()].map(({ data }) => structuredClone(data)); },
       setRenderStyle(style) {
         renderStyle = style;
         postproduction.enabled = !cameraMoving && style !== 'basic';
@@ -197,7 +310,12 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         }
       },
       setGrid(visible) { grid.visible = visible; },
-      async fit() { if (currentModel && !loading) await world.camera.fitToItems(); },
+      async fit() {
+        if (!currentModel || loading) return;
+        const box = buildingBox.clone();
+        for (const { surface } of regions.values()) for (const triangle of surface.triangles) for (const point of triangle.points) box.expandByPoint(new THREE.Vector3().fromArray(point));
+        await controls.fitToSphere(box.getBoundingSphere(new THREE.Sphere()), true);
+      },
       async clearSelection() { await highlighter.clear('select'); },
       async highlightRoof(globalId) {
         if (!currentModel || loading) return;
@@ -207,6 +325,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       },
       async dispose() {
         selectionEpoch++;
+        resetRegions();
         components.dispose();
       }
     };

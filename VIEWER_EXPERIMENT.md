@@ -67,3 +67,11 @@ The model is now the page background, with four initially closed nonmodal panels
 Production build, existing calculation/identity tests and static DOM ID/panel-target checks passed. Native Chrome navigation confirmed the new page title, but its accessibility response omitted the page contents and screenshots returned a uniform blank frame, so visual layout, pointer interaction and native-dialog behavior could not be verified through that tool. This is a browser-observation limitation, not evidence of successful rendering or a diagnosis of an application rendering failure.
 
 For packaging verification, the residential IFC was gzip-compressed and decompressed byte-for-byte identically. The existing asset-preparation script verifies its source SHA-256 before serving/building it. This storage change does not reduce geometry or alter component identities.
+
+## Four-region presentation integration
+
+The viewer now supports confirmed roof/facade/terrace regions from original IFC display faces and user-defined ground rectangles. Upward/outward face filters preserve original triangles; optional edge clipping supports an exposed strip of a larger slab. The same confirmed area and per-system coverage fraction drive proportional overlay surface area and deterministic plan results. Before hides separate overlays without changing IFC geometry. Region removal/model replacement clears planning state and GPU resources. Candidate lookup, confirmation, plan selection and HTML/JSON exports are wired into the floating panels.
+
+Unit tests cover all four region types, aggregation, model-version/duplicate-ID rejection, aggregate budget limits, transforms/face orientation, clipping and visual coverage conservation. Original KIT office geometry is also processed offline through extraction/coverage and both plan calculations. This source-data test assigns region uses synthetically and is not evidence of roof/terrace suitability or real user confirmation.
+
+The browser tool currently reports that the Mac is locked and cannot unlock automatically. Browser acceptance is pending a manual unlock: all region confirmations, scenario and Before/After switching, camera navigation with overlays, removal/replacement, dialogs and matching downloads must be exercised before declaring the presentation accepted. Build or data checks alone do not satisfy that acceptance.

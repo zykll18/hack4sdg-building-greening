@@ -1,5 +1,4 @@
-import { calculateScenario } from '../src/domain/calculate.js';
-import { demoRoof, demoScenarios } from '../src/data/demo.js';
+import { calculatePlan, PLANS, REGION_TYPES } from '../src/domain/greening-plan.js';
 
 const $ = (id) => document.getElementById(id);
 const money = (value) => `HK$${Math.round(value).toLocaleString('en-HK')}`;
@@ -7,7 +6,41 @@ const number = (value) => Math.round(value).toLocaleString('en-HK');
 let selected = null;
 let viewer;
 let importing = false;
-let areaEdited = false;
+let selectedComponent = null;
+let plannedRegions = [];
+let draftRegion = null;
+let preparationEpoch = 0;
+let lastPlan = 'light';
+let candidateEpoch = 0;
+async function refreshCandidates() {
+  const epoch = ++candidateEpoch, type = $('region-type').value;
+  $('candidate-fields').hidden = type === 'ground';
+  $('region-candidate').disabled = true;
+  const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = 'Select a candidate component…';
+  $('region-candidate').replaceChildren(placeholder);
+  if (!viewer || !loadedModel || importing || type === 'ground') return;
+  try {
+    const candidates = await viewer.listRegionCandidates(type);
+    if (epoch !== candidateEpoch) return;
+    for (const candidate of candidates) {
+      if (!candidate.globalId) continue;
+      const option = document.createElement('option'); option.value = candidate.globalId; option.textContent = `${candidate.name} · ${candidate.category} · ${candidate.localId}`;
+      $('region-candidate').append(option);
+    }
+    $('region-candidate').value = selectedComponent?.globalId ?? '';
+    $('region-candidate').disabled = false;
+  } catch (error) { if (epoch === candidateEpoch) $('region-draft-status').textContent = error.message; }
+}
+$('region-candidate').addEventListener('change', async (event) => {
+  if (!event.target.value) return;
+  try { await viewer.highlightRoof(event.target.value); }
+  catch (error) { $('region-draft-status').textContent = error.message; }
+});
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+function calculationInputs() {
+  return { regions: plannedRegions, years: Number($('years').value), budgetHkd: $('budget').value === '' ? undefined : Number($('budget').value) };
+}
+function planResults() { return PLANS.map((plan) => calculatePlan({ ...calculationInputs(), plan })); }
 let loadedModel = null;
 const workspacePanels = [...document.querySelectorAll('.workspace-panel')];
 const panelLaunchers = [...document.querySelectorAll('.workspace-dock [data-panel]')];
@@ -65,35 +98,147 @@ const samples = {
 };
 
 function render() {
-  const area = Number($('area').value);
-  const years = Number($('years').value);
-  const budget = $('budget').value === '' ? undefined : Number($('budget').value);
-  const roof = { ...demoRoof, usableArea: { value: area, unit: 'm2', provenance: areaEdited ? 'user-confirmed' : 'assumed', source: areaEdited ? 'Entered in prototype; requires project verification' : demoRoof.usableArea.source } };
+  for (const [id, planId] of [['view-before', null], ['view-extensive', 'light'], ['view-intensive', 'landscape']]) {
+    $(id).classList.toggle('active', selected === planId);
+    $(id).setAttribute('aria-pressed', String(selected === planId));
+  }
+  $('preview-switch').hidden = !plannedRegions.length;
+  $('preview-before').setAttribute('aria-pressed', String(selected === null));
+  $('preview-after').setAttribute('aria-pressed', String(selected !== null));
+  $('preview-plan-label').textContent = PLANS.find((plan) => plan.id === lastPlan).name;
+  $('export-report').disabled = $('export-handoff').disabled = !plannedRegions.length;
+  $('region-summary').textContent = `${plannedRegions.length} confirmed region(s) · same model, areas and period for both plans.`;
+  if (!plannedRegions.length) {
+    $('scenario-results').innerHTML = '<p class="empty-text">Select a component, open Inspect and add a confirmed greening region. Ground regions can be defined without selecting a component.</p>';
+    $('error').textContent = '';
+    return;
+  }
   try {
-    const cards = demoScenarios.map((scenario) => {
-      const result = calculateScenario({ roof, scenario, years, budgetHkd: budget });
-      const net = result.netDifferenceKgCo2e;
-      return `<article class="scenario ${selected === scenario.id ? 'selected' : ''}">
-        <div class="scenario-title"><div><h3>${scenario.name}</h3><p>${scenario.description}</p></div><span>${number(result.coverageM2)} m²</span></div>
-        <div class="metrics"><div><small>Installation</small><strong>${money(result.installationCostHkd)}</strong></div><div><small>${years}-year cost incl. maintenance</small><strong>${money(result.totalCostHkd)}</strong></div><div><small>${years}-year net carbon difference</small><strong>${net < 0 ? '−' : '+'}${number(Math.abs(net))} kgCO₂e</strong></div></div>
-        <p class="metric-explain">${number(result.installationKgCo2e)} kgCO₂e installation − ${number(result.avoidedOperationalKgCo2e)} kgCO₂e assumed operational savings. Negative means a lower modelled total over this period.</p>
-        <details><summary>Assumptions and checks</summary><ul><li>Installation: ${scenario.installationKgCo2eM2.value} kgCO₂e/m²</li><li>Annual avoided operational emissions: ${scenario.annualAvoidedKgCo2eM2.value} kgCO₂e/m²/year</li><li>Added load assumption: ${scenario.addedLoadKgM2.value} kg/m²</li>${result.checks.map((check) => `<li>${check}</li>`).join('')}</ul><p>All factors are illustrative demo assumptions.</p></details>
+    const results = planResults();
+    $('scenario-results').innerHTML = results.map((result, index) => {
+      const plan = PLANS[index], net = result.netDifferenceKgCo2e;
+      return `<article class="scenario ${selected === plan.id ? 'selected' : ''}">
+        <div class="scenario-title"><div><h3>${plan.name}</h3><p>${plan.description}</p></div><span>${number(result.coverageM2)} m²</span></div>
+        <div class="metrics"><div><small>Installation</small><strong>${money(result.installationCostHkd)}</strong></div><div><small>${result.years}-year cost incl. maintenance</small><strong>${money(result.totalCostHkd)}</strong></div><div><small>${result.years}-year carbon difference</small><strong>${net < 0 ? '−' : '+'}${number(Math.abs(net))} kgCO₂e</strong></div></div>
+        <table class="region-breakdown"><thead><tr><th>Region</th><th>System</th><th>Coverage</th></tr></thead><tbody>${result.items.map((item) => `<tr><td>${REGION_TYPES[item.regionType]}</td><td>${escapeHtml(item.systemName)}</td><td>${item.coverageM2.toFixed(1)} m²</td></tr>`).join('')}</tbody></table>
+        <p class="metric-explain">${number(result.installationKgCo2e)} kgCO₂e installation − ${number(result.avoidedOperationalKgCo2e)} kgCO₂e assumed energy savings. Plant carbon sequestration is excluded. Negative means a lower modelled intervention total over this period.</p>
+        <details><summary>Factors, assumptions and checks</summary><ul>${result.items.map((item) => `<li>${REGION_TYPES[item.regionType]}: installation ${item.factors.installationKgCo2eM2.value} kgCO₂e/m²; assumed avoided emissions ${item.factors.annualAvoidedKgCo2eM2.value} kgCO₂e/m²/year; added load ${item.factors.addedLoadKgM2.value} kg/m².</li>`).join('')}${result.checks.map((check) => `<li>${escapeHtml(check)}</li>`).join('')}</ul><p>All factors are presentation assumptions. Region uses and usable areas are user-confirmed, not structural approval. Planting markers are indicative.</p></details>
       </article>`;
-    });
-    $('scenario-results').innerHTML = cards.join('');
+    }).join('');
     $('error').textContent = '';
   } catch (error) {
     $('scenario-results').innerHTML = '';
     $('error').textContent = error.message;
+    $('export-report').disabled = $('export-handoff').disabled = true;
   }
 }
+for (const id of ['years', 'budget']) $(id).addEventListener('input', render);
 
-for (const id of ['area', 'years', 'budget']) $(id).addEventListener('input', () => {
-  if (id === 'area') areaEdited = true;
+function invalidateRegionDraft() {
+  preparationEpoch++; draftRegion = null;
+  $('region-confirmation').hidden = true;
+  $('confirm-area').checked = false;
+  $('add-region').disabled = true;
+}
+function updateRegionType() {
+  invalidateRegionDraft();
+  $('ground-fields').hidden = $('region-type').value !== 'ground';
+  $('surface-crop-fields').hidden = $('region-type').value === 'ground';
+  $('surface-crop').value = $('region-type').value === 'terrace' ? 'front' : 'full';
+  $('region-draft-status').textContent = 'Review this surface, then confirm its use and usable area. Geometry estimates assume model coordinates are metres.';
+  refreshImportControls();
+  void refreshCandidates();
+}
+$('region-type').addEventListener('change', updateRegionType);
+for (const id of ['ground-width','ground-depth','ground-x','ground-z','surface-crop','crop-depth']) $(id).addEventListener('input', invalidateRegionDraft);
+$('prepare-region').addEventListener('click', async () => {
+  invalidateRegionDraft();
+  const epoch = preparationEpoch;
+  $('prepare-region').disabled = true;
+  $('region-draft-status').textContent = 'Reading the selected surface…';
+  try {
+    const result = await viewer.prepareRegion({ type: $('region-type').value, selection: selectedComponent, crop: { side: $('surface-crop').value, depth: Number($('crop-depth').value) }, ground: { width: Number($('ground-width').value), depth: Number($('ground-depth').value), offsetX: Number($('ground-x').value), offsetZ: Number($('ground-z').value) } });
+    if (epoch !== preparationEpoch) return;
+    draftRegion = result;
+    $('area').value = (Math.floor(result.geometryAreaM2 * 100) / 100).toFixed(2);
+    $('area').max = String(result.geometryAreaM2);
+    $('region-confirmation').hidden = false;
+    $('region-draft-status').textContent = `Display surface estimate: ${result.geometryAreaM2.toFixed(2)} m². Confirm a usable area within this surface; ${result.type === 'ground' ? 'the rectangle is user-defined, not an IFC property boundary.' : 'the proposed region use requires your confirmation.'}`;
+  } catch (error) { if (epoch === preparationEpoch) $('region-draft-status').textContent = error.message; }
+  finally { refreshImportControls(); }
+});
+function refreshRegionConfirmation() {
+  const area = Number($('area').value);
+  $('add-region').disabled = !draftRegion || !$('confirm-area').checked || importing || !Number.isFinite(area) || area <= 0 || area > draftRegion.geometryAreaM2 * 1.001;
+}
+$('area').addEventListener('input', refreshRegionConfirmation);
+$('confirm-area').addEventListener('change', refreshRegionConfirmation);
+$('add-region').addEventListener('click', () => {
+  try {
+    viewer.confirmRegion(draftRegion.id, Number($('area').value));
+    invalidateRegionDraft();
+    selected = lastPlan;
+    viewer.setPlan(PLANS.find((plan) => plan.id === selected), true);
+    render();
+    $('region-draft-status').textContent = 'Region added to both plans. Open Compare or select another component to continue.';
+    showStatus('Showing proposed planting. Use Before / After to compare the same model.');
+  } catch (error) { $('region-draft-status').textContent = error.message; }
+});
+function showRegions(regions) {
+  plannedRegions = regions;
+  if (!regions.length) { selected = null; invalidateRegionDraft(); }
+  $('region-count').textContent = String(regions.length);
+  $('region-list').replaceChildren();
+  for (const region of regions) {
+    const item = document.createElement('li'), text = document.createElement('span'), note = document.createElement('small'), remove = document.createElement('button');
+    text.textContent = `${REGION_TYPES[region.type]} · ${region.usableArea.value.toFixed(2)} m²`;
+    note.textContent = region.name; text.append(note);
+    remove.type = 'button'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove ${region.name}`);
+    remove.addEventListener('click', () => viewer.removeRegion(region.id));
+    item.append(text, remove); $('region-list').append(item);
+  }
+  if (!regions.length) {
+    const empty = document.createElement('li'); empty.className = 'empty-text'; empty.textContent = 'No regions added yet.'; $('region-list').append(empty);
+  }
   render();
+}
+function setPreview(planId) {
+  if (!plannedRegions.length) { openPanel('inspector-panel'); showStatus('Add a confirmed region before previewing planting.'); return; }
+  selected = planId;
+  if (planId) { lastPlan = planId; viewer.setPlan(PLANS.find((plan) => plan.id === planId), true); }
+  else viewer.setBeforeAfter(false);
+  render();
+}
+$('preview-before').addEventListener('click', () => setPreview(null));
+$('preview-after').addEventListener('click', () => setPreview(lastPlan));
+function downloadReport(content, type, name) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const link = document.createElement('a'); link.href = url; link.download = name; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function handoff() {
+  return { schemaVersion: 'building-greening-regions-1', generatedAt: new Date().toISOString(), model: loadedModel, regionUseProvenance: 'user-confirmed', regions: plannedRegions, preview: selected ?? 'before', plans: planResults(), warning: 'Presentation factors, not measured performance. Display geometry estimates assume metres. Professional engineering review is unresolved; no whole-building net-zero or certification claim.' };
+}
+$('export-handoff').addEventListener('click', () => {
+  try { downloadReport(JSON.stringify(handoff(), null, 2), 'application/json', 'building-greening-handoff.json'); }
+  catch (error) { $('error').textContent = error.message; }
+});
+$('export-report').addEventListener('click', () => {
+  try {
+    const report = handoff();
+    const tables = report.plans.map((plan) => `<h2>${escapeHtml(plan.planName)}</h2><p>Covered area: ${plan.coverageM2.toFixed(2)} m² · Installation: ${money(plan.installationCostHkd)} · ${plan.years}-year total cost: ${money(plan.totalCostHkd)} · Carbon difference: ${plan.netDifferenceKgCo2e.toFixed(2)} kgCO₂e</p><table><tr><th>Region / IFC identity</th><th>System</th><th>Area</th><th>Installation</th></tr>${plan.items.map((item) => `<tr><td>${escapeHtml(item.regionName)}<small>${escapeHtml(item.globalId ?? item.regionId)}</small></td><td>${escapeHtml(item.systemName)}</td><td>${item.coverageM2.toFixed(2)} m²</td><td>${money(item.installationCostHkd)}</td></tr>`).join('')}</table><ul>${plan.checks.map((check) => `<li>${escapeHtml(check)}</li>`).join('')}</ul>`).join('');
+    downloadReport(`<!doctype html><html lang="en"><meta charset="utf-8"><title>Building Greening Report</title><style>body{font:14px system-ui;max-width:1000px;margin:40px auto;padding:24px;color:#243432}h1,h2{color:#276754}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #ddd}small{display:block;overflow-wrap:anywhere;color:#678}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f6f4;padding:16px}@media print{body{margin:0}h2{break-after:avoid}}</style><h1>Building greening comparison</h1><p>${escapeHtml(report.model.fileName)} · ${escapeHtml(report.generatedAt)}</p><p>${escapeHtml(report.warning)}</p>${tables}<h2>Traceable regions, factors and scenario results</h2><pre>${escapeHtml(JSON.stringify(report, null, 2))}</pre></html>`, 'text/html', 'building-greening-report.html');
+  } catch (error) { $('error').textContent = error.message; }
 });
 
 function showSelection(selection) {
+  selectedComponent = selection; invalidateRegionDraft();
+  if (selection?.category?.includes('WALL')) $('region-type').value = 'facade';
+  else if (selection?.category?.includes('ROOF')) $('region-type').value = 'roof';
+  $('ground-fields').hidden = $('region-type').value !== 'ground';
+  $('surface-crop-fields').hidden = $('region-type').value === 'ground';
+  refreshImportControls();
+  void refreshCandidates();
   $('selection-dot').hidden = !selection;
   const panel = $('selection-details');
   panel.replaceChildren();
@@ -136,6 +281,7 @@ function refreshImportControls() {
   $('render-style').disabled = importing || !viewer;
   $('show-grid').disabled = importing || !viewer;
   $('clear-selection').disabled = importing || !loadedModel;
+  $('prepare-region').disabled = importing || !loadedModel || !viewer || (!selectedComponent && $('region-type').value !== 'ground');
   $('loading-overlay').hidden = !importing;
   $('viewer-empty').hidden = importing || Boolean(loadedModel);
   $('bim-container').setAttribute('aria-busy', String(importing));
@@ -155,7 +301,7 @@ async function importFile(file) {
     closePanel($('project-panel'));
   }
   catch (error) { showStatus(`IFC import failed: ${error.message}`); }
-  finally { importing = false; refreshImportControls(); }
+  finally { importing = false; refreshImportControls(); void refreshCandidates(); }
 }
 
 $('ifc-file').addEventListener('change', async (event) => {
@@ -176,7 +322,7 @@ async function loadSample() {
     await (sample.format === 'ifc' ? viewer.openIfc(file) : viewer.openFragments(file));
     closePanel($('project-panel'));
   } catch (error) { showStatus(`Could not load the sample: ${error.message}. You can select a local IFC file instead.`); }
-  finally { importing = false; refreshImportControls(); }
+  finally { importing = false; refreshImportControls(); void refreshCandidates(); }
 }
 $('load-sample').addEventListener('click', loadSample);
 $('empty-load-sample').addEventListener('click', () => {
@@ -210,22 +356,14 @@ for (const [id, method] of [['fit-model', 'fit'], ['clear-selection', 'clearSele
     catch (error) { showStatus(error.message); }
   });
 }
-for (const [buttonId, scenarioId] of [['view-before', null], ['view-extensive', 'extensive'], ['view-intensive', 'intensive']]) {
-  $(buttonId).addEventListener('click', () => {
-    selected = scenarioId;
-    for (const id of ['view-before', 'view-extensive', 'view-intensive']) {
-      $(id).classList.toggle('active', id === buttonId);
-      $(id).setAttribute('aria-pressed', String(id === buttonId));
-    }
-    render();
-  });
-}
+for (const [buttonId, scenarioId] of [['view-before', null], ['view-extensive', 'light'], ['view-intensive', 'landscape']]) $(buttonId).addEventListener('click', () => setPreview(scenarioId));
 render();
 refreshImportControls();
 try {
   const { createBimViewer } = await import('../src/adapters/bim-viewer.js');
   viewer = await createBimViewer($('bim-container'), {
     onSelection: showSelection,
+    onRegions: showRegions,
     onStatus: showStatus,
     onModel: (model) => {
       loadedModel = model;
