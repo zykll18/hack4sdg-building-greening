@@ -21,11 +21,28 @@ test('aggregate budget is checked even when individual region costs fit', () => 
   const result=calculatePlan({regions,plan:PLANS[0],years:20,budgetHkd:100000});
   assert.ok(result.items.every((item)=>item.installationCostHkd<100000));
   assert.ok(result.checks.some((check)=>check.includes('Total installation')));
+  assert.equal(result.budgetHkd, 100000);
+  assert.equal(result.withinBudget, false);
+});
+test('budget export preserves zero, exact limits and an absent budget', () => {
+  const regions = [region('roof', 'roof', 100)];
+  const calculate = (budgetHkd) => calculatePlan({ regions, plan: PLANS[0], years: 20, budgetHkd });
+  const withoutBudget = calculate(undefined);
+  assert.equal(withoutBudget.budgetHkd, null);
+  assert.equal(withoutBudget.withinBudget, null);
+  assert.equal(calculate(0).budgetHkd, 0);
+  assert.equal(calculate(0).withinBudget, false);
+  const exact = calculate(withoutBudget.installationCostHkd);
+  assert.equal(exact.withinBudget, true);
+  assert.ok(!exact.checks.some((check) => check.includes('exceeds')));
+  assert.throws(() => calculate(-1), /Budget/);
+  assert.throws(() => calculate(NaN), /Budget/);
 });
 test('rejects duplicate regions, mixed model versions, empty plans and invalid area',()=>{
   const a=region('a','roof',100);
   assert.throws(()=>calculatePlan({regions:[a,a],plan:PLANS[0],years:20}), /unique/);
   assert.throws(()=>calculatePlan({regions:[a,{...region('b','ground',10),modelVersion:'old'}],plan:PLANS[0],years:20}), /same model/);
+  assert.throws(()=>calculatePlan({regions:[a,{...region('b','ground',10),projectId:'other-project'}],plan:PLANS[0],years:20}), /same model/);
   assert.throws(()=>calculatePlan({regions:[],plan:PLANS[0],years:20}), /at least one/);
   assert.throws(()=>calculatePlan({regions:[region('bad','facade',-1)],plan:PLANS[0],years:20}), RangeError);
 });

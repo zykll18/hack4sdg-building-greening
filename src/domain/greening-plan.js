@@ -30,8 +30,9 @@ export function calculatePlan({ regions, plan, years, budgetHkd }) {
   if (budgetHkd !== undefined && (!Number.isFinite(budgetHkd) || budgetHkd < 0)) throw new RangeError('Budget must be non-negative');
   const ids = new Set();
   const version = regions[0].modelVersion;
+  const projectId = regions[0].projectId;
   const items = regions.map((region) => {
-    if (ids.has(region.id) || region.modelVersion !== version) throw new Error('Regions must have unique identifiers and belong to the same model version');
+    if (ids.has(region.id) || region.modelVersion !== version || region.projectId !== projectId) throw new Error('Regions must have unique identifiers and belong to the same model version and project');
     ids.add(region.id);
     if (!REGION_TYPES[region.type] || !plan.profiles[region.type]) throw new Error('Unsupported region type');
     const { roofElementId, ...result } = calculateScenario({ roof: { projectId: region.projectId, modelVersion: region.modelVersion, roofElementId: region.id, usableArea: region.usableArea }, scenario: plan.profiles[region.type], years });
@@ -40,5 +41,5 @@ export function calculatePlan({ regions, plan, years, budgetHkd }) {
   const totals = Object.fromEntries(['coverageM2','installationCostHkd','maintenanceCostHkd','totalCostHkd','installationKgCo2e','avoidedOperationalKgCo2e','netDifferenceKgCo2e'].map((field) => [field, items.reduce((sum, item) => sum + item[field], 0)]));
   const checks = [...new Set(items.flatMap((item) => item.checks))];
   if (budgetHkd !== undefined && totals.installationCostHkd > budgetHkd) checks.push('Total installation cost exceeds the entered budget.');
-  return { projectId: regions[0].projectId, modelVersion: version, planId: plan.id, planName: plan.name, years, ...totals, items, checks, scope: 'Proposed greening interventions only; not a whole-building LCA or net-zero assessment. Plant carbon sequestration is excluded.' };
+  return { projectId, modelVersion: version, planId: plan.id, planName: plan.name, years, budgetHkd: budgetHkd ?? null, withinBudget: budgetHkd === undefined ? null : totals.installationCostHkd <= budgetHkd, ...totals, items, checks, scope: 'Proposed greening interventions only; not a whole-building LCA or net-zero assessment. Plant carbon sequestration is excluded.' };
 }

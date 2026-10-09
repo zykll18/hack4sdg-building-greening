@@ -125,6 +125,8 @@ select { width: 100%; border: 1px solid var(--border); border-radius: 6px; paddi
 .metrics strong { font-size: 17px; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .metrics div:last-child strong { color: var(--accent); }
 .metric-explain { font-size: 10px; line-height: 1.7; color: #7b8c8f; margin: 12px 0 18px; }
+.budget-status { font-size: 11px; line-height: 1.6; color: var(--accent); padding: 9px 11px; background: #f0f6f2; border-radius: 6px; }
+.budget-status.over-budget { color: #8b5c29; background: #fbf3e7; }
 .scenario details { border-top: 1px solid var(--border); padding-top: 12px; font-size: 10px; color: #6e8079; }
 .scenario summary { cursor: pointer; font-weight: 600; }
 .scenario ul { padding-left: 18px; line-height: 1.8; }

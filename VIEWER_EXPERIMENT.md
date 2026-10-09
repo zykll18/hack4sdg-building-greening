@@ -75,3 +75,10 @@ The viewer now supports confirmed roof/facade/terrace regions from original IFC 
 Unit tests cover all four region types, aggregation, model-version/duplicate-ID rejection, aggregate budget limits, transforms/face orientation, clipping and visual coverage conservation. Original KIT office geometry is also processed offline through extraction/coverage and both plan calculations. This source-data test assigns region uses synthetically and is not evidence of roof/terrace suitability or real user confirmation.
 
 The browser tool currently reports that the Mac is locked and cannot unlock automatically. Browser acceptance is pending a manual unlock: all region confirmations, scenario and Before/After switching, camera navigation with overlays, removal/replacement, dialogs and matching downloads must be exercised before declaring the presentation accepted. Build or data checks alone do not satisfy that acceptance.
+
+
+## Chrome review and code audit — 2026-10-09
+
+Native Chrome now shows the full KIT office geometry, reports 784 components, and shows initially closed workspace panels. Opening Inspect shows region type, candidate selection, extent/strip controls and the empty planned-region list. This verifies initial rendering and panel opening only; it does not verify region confirmation, planting overlays or export downloads. The user is actively using Chrome and requested that browser work pause while code checking continues. The earlier Mac-lock blocker no longer describes the current observation.
+
+Code audit fixes the comparison-input shortcut focusing a hidden area field, resets an inherited edge strip when selection changes the inferred region type, makes aggregate budget status visible, preserves entered period/budget in report inputs, and rejects cross-project region aggregation. Budget tests cover zero, omitted and exact-limit budgets plus invalid values. Remaining browser acceptance steps in TEAM_TASKS.md must still be exercised.
