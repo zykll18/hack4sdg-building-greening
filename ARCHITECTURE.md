@@ -53,6 +53,8 @@ The PostproductionRenderer uses shaded edges/ambient occlusion with technical/ba
 
 The bottom-right zoom readout uses the latest fitted view as 100%. Perspective magnification is camera zoom divided by camera-target distance; orthographic magnification uses camera zoom. Camera update events refresh only changed integer percentages, so orbit/pan preserve the reference while dolly/zoom change the readout. Loading a model, Fit, and camera presets establish a new reference after fitting completes. The indicator hides when no valid model view exists and sits above the dock on narrow screens. This is a relative navigation reference, not a physical drawing scale.
 
+Workspace buttons and the IFC upload control share a water-ripple interaction. A delegated pointer/keyboard handler covers static controls and dynamic region-removal buttons, starts the wave at the pointer or button centre, and animates only transform/opacity using the browser Web Animations API. The clipped ripple stays behind button text, inherits its colour, ignores disabled controls and respects reduced-motion preferences. Animations remove their temporary nodes on completion/cancellation; hot reload removes handlers and active waves. No dependency or framework change is needed.
+
 ## Assets and licenses
 
 That Open Components is the implementation foundation; xeokit-bim-viewer is a UI reference only. Installed Components/Components Front/Fragments/Three.js/Camera Controls/Vite use MIT; WebIFC uses MPL-2.0 and its WASM/license are copied unchanged during asset preparation. All sample-specific sources, source revisions, checksums and redistribution notices are recorded in `public/samples/README.md`.

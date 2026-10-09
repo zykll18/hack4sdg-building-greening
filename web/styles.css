@@ -16,6 +16,8 @@ button { border: 1px solid var(--border); background: #fff; color: #384b50; curs
 button:hover:not(:disabled) { background: #edf3ef; border-color: #b8c8c3; }
 button:active:not(:disabled) { transform: scale(.97); }
 button:disabled { opacity: .45; cursor: default; }
+button, label.upload { position: relative; overflow: hidden; isolation: isolate; }
+.button-ripple { position: absolute; display: block; border-radius: 50%; background: currentColor; border: 1px solid currentColor; pointer-events: none; z-index: -1; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visible, .upload:focus-within { outline: 2px solid #478a73; outline-offset: 3px; }
@@ -171,6 +173,7 @@ select { width: 100%; border: 1px solid var(--border); border-radius: 6px; paddi
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .button-ripple { display: none; }
 }
 
 .region-editor { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 18px; }

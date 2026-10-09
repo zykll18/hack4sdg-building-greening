@@ -1,6 +1,34 @@
 import { calculatePlan, PLANS, REGION_TYPES } from '../src/domain/greening-plan.js';
 
 const $ = (id) => document.getElementById(id);
+// Delegation also covers dynamically created region-removal buttons.
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+function buttonRipple(event) {
+  if (reducedMotion.matches || (event.type === 'pointerdown' && event.button !== 0) ||
+      (event.type === 'click' && event.detail !== 0)) return;
+  const button = event.target instanceof Element ? event.target.closest('button, label.upload') : null;
+  if (!button || !button.closest('#workspace') || button.matches(':disabled') ||
+      button.querySelector('input:disabled')) return;
+  const box = button.getBoundingClientRect();
+  if (!box.width || !box.height) return;
+  const fromPointer = event.type === 'pointerdown';
+  const x = fromPointer ? event.clientX - box.left : box.width / 2;
+  const y = fromPointer ? event.clientY - box.top : box.height / 2;
+  const size = 2 * Math.hypot(Math.max(x, box.width - x), Math.max(y, box.height - y));
+  const ripple = document.createElement('span');
+  ripple.className = 'button-ripple';
+  ripple.setAttribute('aria-hidden', 'true');
+  Object.assign(ripple.style, { left: `${x - button.clientLeft}px`, top: `${y - button.clientTop}px`, width: `${size}px`, height: `${size}px` });
+  button.append(ripple);
+  const animation = ripple.animate([
+    { transform: 'translate(-50%, -50%) scale(0)', opacity: .28 },
+    { transform: 'translate(-50%, -50%) scale(.65)', opacity: .17, offset: .55 },
+    { transform: 'translate(-50%, -50%) scale(1)', opacity: 0 }
+  ], { duration: 650, easing: 'cubic-bezier(.2,.6,.3,1)' });
+  animation.finished.then(() => ripple.remove(), () => ripple.remove());
+}
+document.addEventListener('pointerdown', buttonRipple);
+document.addEventListener('click', buttonRipple);
 const money = (value) => `HK$${Math.round(value).toLocaleString('en-HK')}`;
 const number = (value) => Math.round(value).toLocaleString('en-HK');
 let selected = null;
@@ -404,4 +432,12 @@ try {
 } catch (error) {
   showStatus(`Could not initialize the 3D viewer: ${error.message}`);
 }
-if (import.meta.hot) import.meta.hot.dispose(() => { void viewer?.dispose(); });
+if (import.meta.hot) import.meta.hot.dispose(() => {
+  document.removeEventListener('pointerdown', buttonRipple);
+  document.removeEventListener('click', buttonRipple);
+  for (const ripple of document.querySelectorAll('.button-ripple')) {
+    for (const animation of ripple.getAnimations()) animation.cancel();
+    ripple.remove();
+  }
+  void viewer?.dispose();
+});
