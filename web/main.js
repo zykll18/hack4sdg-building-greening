@@ -369,6 +369,10 @@ try {
     onSelection: showSelection,
     onRegions: showRegions,
     onStatus: showStatus,
+    onZoom: (percent) => {
+      $('zoom-indicator').hidden = percent === null;
+      if (percent !== null) $('zoom-percent').textContent = `${percent}%`;
+    },
     onModel: (model) => {
       loadedModel = model;
       $('project-label').textContent = model?.fileName ?? 'Start a building review';

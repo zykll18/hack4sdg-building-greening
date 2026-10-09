@@ -46,6 +46,9 @@ h3 { font-size: 13px; font-weight: 600; margin: 0; }
 .viewport-footer { position: absolute; right: 24px; bottom: 102px; z-index: 1; text-align: right; max-width: min(420px, 70vw); pointer-events: none; color: #6d7f7a; }
 .viewport-footer p { margin: 0 0 5px; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
 .viewport-footer > span { font-size: 9px; color: #8a9793; }
+.zoom-indicator { position: absolute; right: 24px; bottom: 26px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 12px 15px; border-radius: 10px; pointer-events: none; }
+.zoom-indicator > span { font-size: 10px; color: var(--muted); }
+.zoom-indicator output { min-width: 4ch; text-align: right; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .viewer-empty, .loading-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; color: #778a8e; pointer-events: none; }
 .viewer-empty h2 { margin: 22px 0 10px; color: #536b70; font-size: 23px; }
 .viewer-empty p, .loading-overlay p { font-size: 12px; line-height: 1.7; }
@@ -147,7 +150,8 @@ select { width: 100%; border: 1px solid var(--border); border-radius: 6px; paddi
   .workspace-dock button { flex-direction: column; gap: 6px; font-size: 10px; padding: 10px 12px; }
   .workspace-dock svg { width: 18px; height: 18px; }
   .dock-divider { margin: 0; }
-  .viewport-footer { right: 14px; bottom: 98px; max-width: 65vw; }
+  .viewport-footer { right: 14px; bottom: 150px; max-width: 65vw; }
+  .zoom-indicator { right: 14px; bottom: 98px; padding: 10px 12px; }
   .viewport-footer > span { display: none; }
   .side-panel, .comparison-panel { inset: auto 14px 104px; width: auto; max-width: none; max-height: calc(100dvh - 186px); }
   .panel-heading { padding: 17px 18px 15px; }

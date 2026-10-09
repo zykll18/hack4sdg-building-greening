@@ -6,7 +6,7 @@ import { normalizeSelection } from './selection-data.js';
 import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface } from './greening-geometry.js';
 
 /** IFC display, confirmed greening regions, scenario overlays and frontend handoff. */
-export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {} }) {
+export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {}, onZoom = () => {} }) {
   const components = new OBC.Components();
   const world = components.get(OBC.Worlds).create();
   let currentModel = null;
@@ -36,6 +36,24 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     world.renderer.three.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     world.camera = new OBC.OrthoPerspectiveCamera(components);
     const controls = world.camera.controls;
+    let fittedMagnification = null;
+    let lastZoomPercent = null;
+    function magnification() {
+      const camera = world.camera.three;
+      return camera.isOrthographicCamera ? camera.zoom : camera.zoom / controls.distance;
+    }
+    function publishZoom() {
+      const scale = magnification();
+      const percent = fittedMagnification && Number.isFinite(scale) && scale > 0
+        ? Math.max(1, Math.round(100 * scale / fittedMagnification)) : null;
+      if (percent === lastZoomPercent) return;
+      lastZoomPercent = percent;
+      onZoom(percent);
+    }
+    function resetZoomReference() {
+      fittedMagnification = magnification();
+      publishZoom();
+    }
     controls.azimuthRotateSpeed = 0.9;
     controls.polarRotateSpeed = 0.9;
     controls.truckSpeed = 1.8;
@@ -71,7 +89,8 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
 
     const fragments = components.get(OBC.FragmentsManager);
     fragments.init(workerUrl);
-    world.camera.controls.addEventListener('update', () => fragments.core.update());
+    const updateCamera = () => { fragments.core.update(); publishZoom(); };
+    controls.addEventListener('update', updateCamera);
     world.onCameraChanged.add((camera) => {
       for (const [, model] of fragments.list) model.useCamera(camera.three);
       postproduction.updateCamera();
@@ -211,6 +230,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       offset.normalize().multiplyScalar(Math.max(sphere.radius * 3, 1));
       await world.camera.controls.setLookAt(center.x + offset.x, center.y + offset.y, center.z + offset.z, center.x, center.y, center.z, true);
       await world.camera.fitToItems({ [currentModel.modelId]: new Set(displayIds) });
+      resetZoomReference();
     }
 
     async function openFile(file, format) {
@@ -230,6 +250,8 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
           await highlighter.clear('select');
           replacing = true;
           resetRegions();
+          fittedMagnification = null;
+          publishZoom();
           if (currentModel) {
             world.scene.three.remove(currentModel.object);
             await fragments.core.disposeModel(currentModel.modelId);
@@ -259,6 +281,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
           await world.camera.projection.set('Perspective');
           await world.camera.controls.setLookAt(center.x + distance, center.y + distance * 0.7, center.z + distance, center.x, center.y, center.z);
           await world.camera.fitToItems({ [model.modelId]: new Set(geometryIds) });
+          resetZoomReference();
           await fragments.core.update(true);
           const info = { modelVersion: version, fileName: file.name, sourceFormat: format, componentCount: geometryIds.length, categoryCounts };
           onModel(info);
@@ -271,6 +294,8 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
             currentModel = null;
           }
           if (replacing) {
+            fittedMagnification = null;
+            publishZoom();
             modelVersion = null;
             displayIds = [];
             categoryById.clear();
@@ -315,6 +340,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         const box = buildingBox.clone();
         for (const { surface } of regions.values()) for (const triangle of surface.triangles) for (const point of triangle.points) box.expandByPoint(new THREE.Vector3().fromArray(point));
         await controls.fitToSphere(box.getBoundingSphere(new THREE.Sphere()), true);
+        resetZoomReference();
       },
       async clearSelection() { await highlighter.clear('select'); },
       async highlightRoof(globalId) {
@@ -324,6 +350,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         await highlighter.highlightByID('select', { [currentModel.modelId]: new Set([id]) });
       },
       async dispose() {
+        controls.removeEventListener('update', updateCamera);
         selectionEpoch++;
         resetRegions();
         components.dispose();
