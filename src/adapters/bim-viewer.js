@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as OBC from '@thatopen/components';
 import * as OBF from '@thatopen/components-front';
 import workerUrl from '@thatopen/fragments/worker?url';
+import { createPlantingVisual } from './planting-visuals.js';
 import { confirmRegionBatch } from '../domain/region-confirmation.js';
 import { screenRegion } from '../domain/region-screening.js';
 import { normalizeSelection } from './selection-data.js';
@@ -79,6 +80,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     postproduction.edgesPass.color.set('#526368');
     postproduction.edgesPass.width = 1;
     postproduction.smaaEnabled = true;
+    postproduction.excludedObjectsEnabled = true;
 
     let cameraMoving = false;
     let renderStyle = 'shaded';
@@ -154,14 +156,19 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     highlighter.events.select.onClear.add(() => { selectionEpoch++; onSelection(null); });
 
     function clearOverlayObjects() {
-      const geometries = new Set(), materials = new Set();
+      const geometries = new Set(), materials = new Set(), textures = new Set();
       overlays.traverse((object) => {
         if (object.geometry) geometries.add(object.geometry);
         for (const material of [].concat(object.material ?? [])) materials.add(material);
       });
       overlays.clear();
       for (const geometry of geometries) geometry.dispose();
-      for (const material of materials) material.dispose();
+      for (const material of materials) {
+        postproduction.excludedObjectsPass.removeExcludedMaterial(material);
+        if (material.map) textures.add(material.map);
+        material.dispose();
+      }
+      for (const texture of textures) texture.dispose();
     }
     function renderOverlays() {
       clearOverlayObjects();
@@ -170,31 +177,11 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         const profile = activePlan.profiles[data.type];
         if (!profile) continue;
         const fraction = Math.min(1, data.usableArea.value / surface.surfaceAreaM2 * profile.coverageFraction);
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(coveredSurface(surface, fraction), 3));
-        geometry.computeVertexNormals();
-        const material = new THREE.MeshStandardMaterial({ color: activePlan.id === 'light' ? '#729753' : '#427346', roughness: .95, side: THREE.DoubleSide });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.userData.regionId = data.id;
-        overlays.add(mesh);
-        const planted = extractGreeningSurface([{ positions: geometry.attributes.position.array, indices: Uint32Array.from({ length: geometry.attributes.position.count }, (_, index) => index), transform: new THREE.Matrix4() }], new THREE.Matrix4(), data.type, buildingBox.getCenter(new THREE.Vector3()));
-        const count = Math.min(48, planted.triangles.length);
-        const plants = new THREE.InstancedMesh(new THREE.ConeGeometry(.16, .5, 5), new THREE.MeshStandardMaterial({ color: '#31583c', roughness: 1 }), count);
-        const dummy = new THREE.Object3D();
-        const up = new THREE.Vector3(0, 1, 0);
-        for (let i = 0; i < count; i++) {
-          const triangle = planted.triangles[Math.floor(i * planted.triangles.length / count)];
-          const normal = new THREE.Vector3().fromArray(triangle.normal);
-          const center = new THREE.Vector3();
-          for (const point of triangle.points) center.add(new THREE.Vector3().fromArray(point));
-          center.multiplyScalar(1 / 3);
-          const scale = Math.min(1.5, Math.max(.15, Math.sqrt(triangle.area * fraction) * .5)) * (activePlan.id === 'landscape' ? 1.4 : .7);
-          dummy.position.copy(center).addScaledVector(normal, .035 + scale * .25);
-          dummy.quaternion.setFromUnitVectors(up, normal); dummy.scale.setScalar(scale); dummy.updateMatrix();
-          plants.setMatrixAt(i, dummy.matrix);
-        }
-        plants.instanceMatrix.needsUpdate = true;
-        overlays.add(plants);
+        const planting = createPlantingVisual({ positions: coveredSurface(surface, fraction), type: data.type, planId: activePlan.id, seed: data.globalId ?? data.id });
+        planting.userData.regionId = data.id;
+        // Restore original planting colors after BIM pen/AO passes, including technical drawing mode.
+        planting.traverse(object => { if (object.material) postproduction.excludedObjectsPass.addExcludedMaterial(object.material); });
+        overlays.add(planting);
       }
       overlays.visible = showAfter;
     }
