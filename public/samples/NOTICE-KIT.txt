@@ -1,0 +1,13 @@
+Attribution: Institute for Automation and Applied Informatics (IAI) / Karlsruhe Institute of Technology (KIT).
+
+The KIT IFC Examples publication states that the models are for unrestricted use and asks that publications credit IAI / KIT. This is the publisher's stated permission, not an invented SPDX license.
+Source: https://www.ifcwiki.org/index.php?title=KIT_IFC_Examples
+Retrieved: 2026-10-07
+
+KIT-Office.ifc is an unchanged copy of AC20-Institute-Var-2.ifc:
+https://www.ifcwiki.org/images/9/98/AC20-Institute-Var-2.ifc
+
+KIT-FZK-Haus.ifc is an unchanged copy of AC20-FZK-Haus.ifc:
+https://www.ifcwiki.org/images/e/e3/AC20-FZK-Haus.ifc
+
+The publication identifies these as fictional building examples. They are not presented as surveyed or verified built projects.
