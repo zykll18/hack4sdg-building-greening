@@ -215,3 +215,16 @@ select { width: 100%; border: 1px solid var(--border); border-radius: 6px; paddi
 
 .candidate-area-error { color: #994834; font-size: 11px; line-height: 1.6; }
 .candidate-area input[aria-invalid=true] { border-color: #994834; }
+
+/* Persistent proposal colors are explained even when Inspect is closed. */
+.proposal-legend { position: absolute; left: 24px; top: 160px; z-index: 2; padding: 14px 16px; max-width: 275px; border-radius: 14px; }
+.proposal-legend > div { display: flex; align-items: center; gap: 7px; font-size: 11px; }
+.proposal-legend strong { display: block; margin-top: 10px; font-size: 12px; }
+.proposal-legend p { font-size: 11px; color: var(--muted); margin: 8px 0; }
+.proposal-legend button { padding: 8px 12px; font-size: 11px; }
+.legend-blue, .legend-green { width: 10px; height: 10px; border-radius: 3px; background: #72b4dd; }
+.legend-green { background: #24b38c; margin-left: 8px; }
+.source-inspection { margin-bottom: 20px; }
+@media (max-width: 600px) { .proposal-legend { left: 14px; top: 130px; padding: 10px 12px; max-width: 235px; } }
+
+@media (max-width: 600px) { #workspace:has(#preview-switch:not([hidden])) .proposal-legend { top: 165px; } }

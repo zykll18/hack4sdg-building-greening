@@ -45,6 +45,9 @@ let analysing = false;
 let applyingCombination = false;
 let combinationEpoch = 0;
 let proposalRows = [];
+let recommendedGuids = new Map();
+let recommendationVersion = null;
+let lastHighlightKey = null;
 const candidateCache = new Map();
 async function screenedCandidates(type) {
   if (!viewer || !loadedModel || importing) return [];
@@ -89,7 +92,7 @@ function calculationInputs() {
 function planResults() { return PLANS.map((plan) => calculatePlan({ ...calculationInputs(), plan })); }
 let loadedModel = null;
 const workspacePanels = [...document.querySelectorAll('.workspace-panel')];
-const panelLaunchers = [...document.querySelectorAll('.workspace-dock [data-panel]')];
+const panelLaunchers = [...document.querySelectorAll('[data-panel][aria-expanded]')];
 
 function syncPanelLaunchers() {
   for (const launcher of panelLaunchers) {
@@ -134,13 +137,15 @@ document.addEventListener('keydown', (event) => {
     closePanel(panel);
   }
 });
-async function analyseLocations(question = '') {
-  openPanel('inspector-panel');
+async function analyseLocations(question = '', { open = true } = {}) {
+  if (open) openPanel('inspector-panel');
   if (!loadedModel || importing) { $('assistant-answer').textContent = 'Load a building before finding planting candidates.'; return; }
   if (applyingCombination) return;
   const epoch = ++assistantEpoch, version = loadedModel.modelVersion;
   analysing = true;
   $('analyse-building').disabled = $('assistant-ask').disabled = true;
+  const previousRows = proposalRows, previousSections = [...$('assistant-candidates').children];
+  const previous = new Map(proposalRows.filter(row => row.picked).map(row => [row.candidate.globalId, { type: row.type, area: row.area.value }]));
   proposalRows = []; $('confirm-combination').checked = false;
   $('combination-controls').hidden = true; $('combination-status').textContent = '';
   $('assistant-candidates').replaceChildren();
@@ -148,25 +153,18 @@ async function analyseLocations(question = '') {
   const counts = {};
   const requested = /roof|屋頂|屋顶/i.test(question) ? ['roof'] : /facade|wall|立面|外牆|外墙/i.test(question) ? ['facade'] : /terrace|balcony|露台|陽台|阳台/i.test(question) ? ['terrace'] : /ground|courtyard|地面|庭院/i.test(question) ? ['ground'] : ['roof','facade','terrace','ground'];
   try {
-    for (const type of requested) {
+    for (const type of ['roof', 'facade', 'terrace', 'ground']) {
       const candidates = type === 'ground' ? [] : await screenedCandidates(type);
       if (epoch !== assistantEpoch || loadedModel?.modelVersion !== version || importing) return;
       counts[type] = candidates.length;
       const section = document.createElement('section'), heading = document.createElement('h3');
-      heading.textContent = `${REGION_TYPES[type]} · ${candidates.length} conditional candidate(s)`; section.append(heading);
-      if (!candidates.length) {
-        const note = document.createElement('p'); note.className = 'note';
-        note.textContent = type === 'ground' ? 'No available land can be inferred from this IFC. Define a rectangle outside the building footprint and confirm land availability, level and utilities.' : 'No compatible candidate found. Do not convert an ordinary floor or an incompatible component into a planting area.';
-        section.append(note);
-      }
-      let more;
-      candidates.forEach((candidate, index) => {
+      heading.textContent = `${REGION_TYPES[type]} · selected locations`; section.hidden = true; section.append(heading);
+      candidates.forEach((candidate) => {
         if (!candidate.globalId) return;
         const row = document.createElement('div'); row.className = 'proposal-candidate';
-        const choice = document.createElement('label'); choice.className = 'candidate-choice';
-        const checkbox = document.createElement('input'); checkbox.type = 'checkbox';
+        const choice = document.createElement('div'); choice.className = 'candidate-choice';
         const name = document.createElement('strong'); name.textContent = `${candidate.name} · ${candidate.globalId.slice(-6)}`;
-        choice.append(checkbox, name);
+        choice.append(name);
         const estimate = document.createElement('p'); estimate.className = 'note'; estimate.textContent = `${candidate.geometryAreaM2.toFixed(1)} m² compatible display estimate · conditional`;
         const details = document.createElement('details'), summary = document.createElement('summary'), reason = document.createElement('p');
         summary.textContent = 'Why this candidate / missing checks'; reason.className = 'note';
@@ -174,7 +172,7 @@ async function analyseLocations(question = '') {
         const systems = document.createElement('p'); systems.className = 'note'; systems.textContent = PLANS.map(plan => `${plan.name}: ${plan.profiles[type].name}`).join(' · ');
         const areaLabel = document.createElement('label'); areaLabel.className = 'candidate-area'; areaLabel.append('Usable area (m²)');
         const area = document.createElement('input'); area.type = 'number'; area.min = '.01'; area.step = '.01'; area.max = String(candidate.geometryAreaM2);
-        area.value = (Math.floor(candidate.geometryAreaM2 * 100) / 100).toFixed(2); areaLabel.append(area);
+        area.value = previous.get(candidate.globalId)?.area ?? (Math.floor(candidate.geometryAreaM2 * 100) / 100).toFixed(2); areaLabel.append(area);
         const areaError = document.createElement('p'); areaError.className = 'candidate-area-error'; areaError.id = `proposal-area-${type}-${candidate.localId}`; areaError.hidden = true; areaError.setAttribute('role', 'alert');
         area.setAttribute('aria-describedby', areaError.id);
         const locate = document.createElement('button'); locate.type = 'button'; locate.textContent = 'Locate & inspect';
@@ -184,25 +182,26 @@ async function analyseLocations(question = '') {
           try { await viewer.highlightRoof(candidate.globalId); openPanel('inspector-panel'); }
           catch (error) { $('assistant-answer').textContent = error.message; }
         });
-        checkbox.addEventListener('change', () => {
-          if (checkbox.checked) for (const other of proposalRows) if (other.candidate.globalId === candidate.globalId && other.checkbox !== checkbox) other.checkbox.checked = false;
-          $('confirm-combination').checked = false; updateCombinationControls();
-        });
+        const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Remove from selection';
+        const record = { type, candidate, picked: previous.get(candidate.globalId)?.type === type, area, areaError, locate, remove, row, section };
+        remove.addEventListener('click', () => { record.picked = false; $('confirm-combination').checked = false; updateCombinationControls(); });
         area.addEventListener('input', () => { $('confirm-combination').checked = false; updateCombinationControls(); });
-        row.append(choice, estimate, details, systems, areaLabel, areaError, locate);
-        proposalRows.push({ type, candidate, checkbox, area, areaError, locate });
-        if (index < 3) section.append(row);
-        else {
-          if (!more) { more = document.createElement('details'); more.className = 'more-candidates'; const heading = document.createElement('summary'); heading.textContent = `More ${REGION_TYPES[type].toLowerCase()} candidates (${candidates.length - 3})`; more.append(heading); section.append(more); }
-          more.append(row);
-        }
+        row.append(choice, estimate, details, systems, areaLabel, areaError, locate, remove);
+        proposalRows.push(record); section.append(row);
       });
       $('assistant-candidates').append(section);
     }
+    recommendationVersion = version;
+    const limits = { roof: 3, facade: 2, terrace: 2 }, countsByType = {};
+    recommendedGuids = new Map();
+    for (const row of proposalRows) if (!(row.type === 'roof' && proposalRows.some(other => other.type === 'terrace' && other.candidate.globalId === row.candidate.globalId)) && requested.includes(row.type) && !plannedRegions.some(region => region.globalId === row.candidate.globalId) && !recommendedGuids.has(row.candidate.globalId) && (countsByType[row.type] ?? 0) < (limits[row.type] ?? 0)) {
+      recommendedGuids.set(row.candidate.globalId, row.type); countsByType[row.type] = (countsByType[row.type] ?? 0) + 1;
+    }
     const chinese = /[\u3400-\u9fff]/.test(question) || (!question && $('voice-language').value.startsWith('zh'));
     const summary = Object.entries(counts).map(([type, count]) => `${chinese ? {roof:'屋顶',facade:'立面',terrace:'露台',ground:'庭院'}[type] : REGION_TYPES[type]}: ${count}`).join(' · ');
-    $('assistant-answer').textContent = chinese ? `初筛候选数量：${summary}。已按构件用途、朝向、坡度和位置筛选。仍需确认外部空间与工程条件；普通楼板不能替代露台，庭院用地也不能从模型推断。可以选择推荐组合或勾选多个位置，点击 Locate 核查位置、调整每块面积，确认后一次加入两套方案。当前是规则筛选，尚未接入 AI 模型。` : `Conditional candidates: ${summary}. Select a suggested set or choose multiple locations, inspect each face and edit its usable area, then add the reviewed set to both plans. Check exposure and unresolved engineering requirements before confirming. Ordinary floors are not terrace candidates, and available land cannot be inferred. This is rule-based screening; AI is not connected.`;
-  } catch (error) { if (epoch === assistantEpoch) $('assistant-answer').textContent = error.message; }
+    $('assistant-answer').textContent = chinese ? `初筛：${summary}。蓝色是推荐起点，绿色是已选位置。关闭面板，直接点击建筑加入或取消；点击别处保留之前的选择。Inspect 只列出你选中的位置，核查可用面积和工程条件后统一加入两套方案。立面需确认外墙，普通楼板不当作露台，庭院需单独确认用地。当前使用规则筛选，尚未接入 AI。` : `Conditional candidates: ${summary}. Blue marks a suggested starting set; green marks your selections. Close Inspect and click the building to add or remove locations. Earlier choices remain selected. Review usable areas and missing engineering checks here before adding the set to both plans. Exterior walls and land availability require confirmation. Rule-based screening; AI is not connected.`;
+
+  } catch (error) { if (epoch === assistantEpoch) { proposalRows = previousRows; $('assistant-candidates').replaceChildren(...previousSections); $('assistant-answer').textContent = `Location screening failed: ${error.message}. Earlier selections are preserved. Try finding locations again.`; } }
   finally { if (epoch === assistantEpoch) { analysing = false; $('combination-controls').hidden = !proposalRows.length; refreshImportControls(); } }
 }
 $('analyse-building').addEventListener('click', () => void analyseLocations());
@@ -211,45 +210,67 @@ function updateCombinationControls() {
   const busy = importing || analysing || applyingCombination || !loadedModel;
   for (const row of proposalRows) {
     const assigned = plannedRegions.some(region => region.globalId === row.candidate.globalId);
-    if (assigned) row.checkbox.checked = false;
-    row.checkbox.disabled = busy || assigned || row.candidate.modelVersion !== loadedModel?.modelVersion;
-    row.area.disabled = row.checkbox.disabled || !row.checkbox.checked;
-    const invalid = row.checkbox.checked && (!Number.isFinite(Number(row.area.value)) || Number(row.area.value) <= 0 || Number(row.area.value) > row.candidate.geometryAreaM2 * 1.001);
+    if (assigned) row.picked = false;
+    row.disabled = busy || assigned || row.candidate.modelVersion !== loadedModel?.modelVersion;
+    row.row.hidden = !row.picked;
+    row.section.hidden = !proposalRows.some(item => item.section === row.section && item.picked);
+    row.remove.disabled = busy;
+    row.area.disabled = row.disabled || !row.picked;
+    const invalid = row.picked && (!Number.isFinite(Number(row.area.value)) || Number(row.area.value) <= 0 || Number(row.area.value) > row.candidate.geometryAreaM2 * 1.001);
     row.area.setAttribute('aria-invalid', String(invalid)); row.areaError.hidden = !invalid;
     row.areaError.textContent = invalid ? `Enter a positive usable area within ${row.candidate.geometryAreaM2.toFixed(2)} m². The whole set is waiting for this correction.` : '';
     row.locate.disabled = busy;
   }
-  const chosen = proposalRows.filter(row => row.checkbox.checked);
+  const chosen = proposalRows.filter(row => row.picked);
   const total = chosen.reduce((sum, row) => sum + Number(row.area.value), 0);
   const valid = chosen.length && chosen.every(row => Number.isFinite(Number(row.area.value)) && Number(row.area.value) > 0 && Number(row.area.value) <= row.candidate.geometryAreaM2 * 1.001);
-  $('combination-summary').textContent = chosen.length ? `${chosen.length} selected region(s) · ${Number.isFinite(total) ? total.toFixed(2) : '—'} m² proposed usable area. Both plans will use this same set alongside ${plannedRegions.length} already-added region(s).` : 'Choose several locations below, or use Select suggested set. Already-added components are unavailable.';
+  $('combination-summary').textContent = chosen.length ? `${chosen.length} selected region(s) · ${Number.isFinite(total) ? total.toFixed(2) : '—'} m² proposed usable area. Both plans will use this same set alongside ${plannedRegions.length} already-added region(s).` : `${plannedRegions.length} region(s) already added. Close Inspect and click building locations to add / remove from the pending selection. Blue = recommended; green = selected. Review this set before adding it.`;
   $('review-combination').disabled = importing || applyingCombination || !plannedRegions.length;
   $('add-combination').disabled = busy || !valid || !$('confirm-combination').checked;
   $('confirm-combination').disabled = busy || !chosen.length;
-  $('select-suggested').disabled = busy || !proposalRows.some(row => !row.checkbox.disabled);
+  $('select-suggested').disabled = busy || !proposalRows.some(row => !row.disabled);
   $('clear-candidates').disabled = busy || !chosen.length;
   $('add-combination').textContent = applyingCombination ? 'Preparing selected surfaces…' : 'Add selected regions to both plans';
+  $('proposal-legend').hidden = recommendationVersion !== loadedModel?.modelVersion || !proposalRows.length || selected !== null;
+  const recommended = proposalRows.filter(row => recommendedGuids.get(row.candidate.globalId) === row.type && !plannedRegions.some(region => region.globalId === row.candidate.globalId));
+  $('proposal-count').textContent = `${chosen.length} selected · ${new Set(recommended.map(row => row.candidate.globalId)).size} recommended`;
+  const ids = { recommended: [...new Set(recommended.map(row => row.candidate.localId))], picked: chosen.map(row => row.candidate.localId), version: loadedModel?.modelVersion };
+  const key = JSON.stringify(ids);
+  if (viewer && key !== lastHighlightKey) { lastHighlightKey = key; void viewer.setProposalHighlights(ids).catch(error => { lastHighlightKey = null; showStatus(`Could not highlight locations: ${error.message}`); }); }
+
+}
+function toggleModelLocation(selection) {
+  if (importing || analysing || applyingCombination || selection.modelVersion !== recommendationVersion) return;
+  if (plannedRegions.some(region => region.globalId === selection.globalId)) {
+    showStatus('This component is already in both plans. Remove it in Inspect before choosing it again.'); return;
+  }
+  const matches = proposalRows.filter(row => row.candidate.globalId === selection.globalId);
+  const row = matches.find(item => item.picked) ?? matches.find(item => item.type === 'terrace') ?? matches[0];
+  if (!row) { showStatus(`${selection.name}: not a screened planting candidate. Inspect source details for manual review; windows, ordinary floors and incompatible faces are not added.`); return; }
+  if (selected !== null) { selected = null; viewer.setBeforeAfter(false); render(); }
+  row.picked = !row.picked;
+  $('confirm-combination').checked = false; $('combination-status').textContent = '';
+  updateCombinationControls();
+  showStatus(`${row.picked ? 'Added' : 'Removed'} ${selection.name}. ${proposalRows.filter(item => item.picked).length} locations selected. Earlier choices remain highlighted; review them in Inspect.`);
 }
 $('confirm-combination').addEventListener('change', updateCombinationControls);
 $('select-suggested').addEventListener('click', () => {
-  const limits = { roof: 3, facade: 2, terrace: 2 }, counts = {}, guids = new Set();
-  for (const row of proposalRows) {
-    row.checkbox.checked = false;
-    if (!row.checkbox.disabled && !guids.has(row.candidate.globalId) && (counts[row.type] ?? 0) < limits[row.type]) {
-      row.checkbox.checked = true; guids.add(row.candidate.globalId); counts[row.type] = (counts[row.type] ?? 0) + 1;
-    }
+  for (const row of proposalRows) if (!row.disabled && recommendedGuids.get(row.candidate.globalId) === row.type) {
+    for (const other of proposalRows) if (other.candidate.globalId === row.candidate.globalId) other.picked = false;
+    row.picked = true;
   }
-  $('confirm-combination').checked = false; $('combination-status').textContent = 'Starting set selected. Locate each face, review its checks and edit usable areas before confirming.';
+  selected = null; viewer.setBeforeAfter(false); render();
+  $('confirm-combination').checked = false; $('combination-status').textContent = 'Recommended locations added to your selection. Close Inspect to see the green highlights, then review usable areas before confirming.';
   updateCombinationControls();
 });
 $('clear-candidates').addEventListener('click', () => {
-  for (const row of proposalRows) row.checkbox.checked = false;
+  for (const row of proposalRows) row.picked = false;
   $('confirm-combination').checked = false; $('combination-status').textContent = ''; updateCombinationControls();
 });
 $('add-combination').addEventListener('click', async () => {
   if ($('add-combination').disabled) return;
   const epoch = ++combinationEpoch;
-  const requests = proposalRows.filter(row => row.checkbox.checked).map(row => ({ type: row.type, localId: row.candidate.localId, globalId: row.candidate.globalId, modelVersion: row.candidate.modelVersion, area: Number(row.area.value) }));
+  const requests = proposalRows.filter(row => row.picked).map(row => ({ type: row.type, localId: row.candidate.localId, globalId: row.candidate.globalId, modelVersion: row.candidate.modelVersion, area: Number(row.area.value) }));
   applyingCombination = true; invalidateRegionDraft(); refreshImportControls();
   $('combination-status').textContent = `Rechecking ${requests.length} source surfaces before adding the complete set…`;
   try {
@@ -293,6 +314,7 @@ const samples = {
 };
 
 function render() {
+  $('proposal-legend').hidden = recommendationVersion !== loadedModel?.modelVersion || !proposalRows.length || selected !== null;
   for (const [id, planId] of [['view-before', null], ['view-extensive', 'light'], ['view-intensive', 'landscape']]) {
     $(id).classList.toggle('active', selected === planId);
     $(id).setAttribute('aria-pressed', String(selected === planId));
@@ -471,7 +493,7 @@ function showSelection(selection) {
   content.textContent = JSON.stringify(selection.properties, null, 2);
   properties.append(summary, content);
   panel.append(details, properties);
-  openPanel('inspector-panel', { focus: false });
+  if (recommendationVersion !== selection.modelVersion) openPanel('inspector-panel', { focus: false });
 }
 
 function refreshImportControls() {
@@ -508,7 +530,7 @@ async function importFile(file) {
     closePanel($('project-panel'));
   }
   catch (error) { showStatus(`IFC import failed: ${error.message}`); }
-  finally { importing = false; refreshImportControls(); void refreshCandidates(); }
+  finally { importing = false; refreshImportControls(); void refreshCandidates(); if (loadedModel) void analyseLocations('', { open: false }); }
 }
 
 $('ifc-file').addEventListener('change', async (event) => {
@@ -529,7 +551,7 @@ async function loadSample() {
     await (sample.format === 'ifc' ? viewer.openIfc(file) : viewer.openFragments(file));
     closePanel($('project-panel'));
   } catch (error) { showStatus(`Could not load the sample: ${error.message}. You can select a local IFC file instead.`); }
-  finally { importing = false; refreshImportControls(); void refreshCandidates(); }
+  finally { importing = false; refreshImportControls(); void refreshCandidates(); if (loadedModel) void analyseLocations('', { open: false }); }
 }
 $('load-sample').addEventListener('click', loadSample);
 $('empty-load-sample').addEventListener('click', () => {
@@ -570,6 +592,7 @@ try {
   const { createBimViewer } = await import('../src/adapters/bim-viewer.js');
   viewer = await createBimViewer($('bim-container'), {
     onSelection: showSelection,
+    onPick: toggleModelLocation,
     onRegions: showRegions,
     onStatus: showStatus,
     onZoom: (percent) => {
@@ -577,7 +600,7 @@ try {
       if (percent !== null) $('zoom-percent').textContent = `${percent}%`;
     },
     onModel: (model) => {
-      assistantEpoch++; analysing = false; combinationEpoch++; applyingCombination = false; proposalRows = []; candidateCache.clear(); stopVoice();
+      assistantEpoch++; analysing = false; combinationEpoch++; applyingCombination = false; proposalRows = []; recommendedGuids.clear(); recommendationVersion = null; lastHighlightKey = null; $('proposal-legend').hidden = true; candidateCache.clear(); stopVoice();
       $('combination-controls').hidden = true; $('confirm-combination').checked = false; $('combination-status').textContent = '';
       $('assistant-candidates').replaceChildren();
       $('assistant-answer').textContent = 'Find candidates for the current model. Nothing is added automatically.';

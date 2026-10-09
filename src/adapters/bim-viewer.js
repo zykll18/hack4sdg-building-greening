@@ -8,7 +8,7 @@ import { normalizeSelection } from './selection-data.js';
 import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface } from './greening-geometry.js';
 
 /** IFC display, confirmed greening regions, scenario overlays and frontend handoff. */
-export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {}, onZoom = () => {} }) {
+export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {}, onZoom = () => {}, onPick = () => {} }) {
   const components = new OBC.Components();
   const world = components.get(OBC.Worlds).create();
   let currentModel = null;
@@ -16,6 +16,10 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
   let categoryById = new Map();
   let selectionEpoch = 0;
   let loading = false;
+  let programmaticSelection = 0;
+  let pickQueue = Promise.resolve();
+  let proposalQueue = Promise.resolve();
+  let proposalState = null;
   let displayIds = [];
   let buildingBox;
   let pendingRegion;
@@ -116,9 +120,13 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     components.get(OBC.Raycasters).get(world);
     const highlighter = components.get(OBF.Highlighter);
     highlighter.setup({ world, selectMaterialDefinition: {
-      color: new THREE.Color('#7a99b2'), opacity: .45, transparent: true, renderedFaces: 0
+      color: new THREE.Color('#7a99b2'), opacity: .45, transparent: true, renderedFaces: 0, priority: -1
     } });
     highlighter.multiple = 'none';
+    // Focus is separate from persistent proposal membership. Every repeated click is delivered.
+    highlighter.autoToggle.delete('select');
+    highlighter.styles.set('recommended', { color: new THREE.Color('#72b4dd'), opacity: .78, transparent: true, renderedFaces: 0, priority: 0 });
+    highlighter.styles.set('picked', { color: new THREE.Color('#24b38c'), opacity: .9, transparent: true, renderedFaces: 0, priority: 1 });
 
     highlighter.events.select.onHighlight.add(async (modelIdMap) => {
       const epoch = ++selectionEpoch;
@@ -128,10 +136,17 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       const ids = modelIdMap[model.modelId];
       const localId = ids?.values().next().value;
       if (localId === undefined) return;
+      const fromModel = programmaticSelection === 0;
+      const dataPromise = Promise.all([model.getItemsData([localId]), model.getGuidsByLocalIds([localId])]);
+      const resolveSelection = dataPromise.then(([data, guids]) => normalizeSelection({ modelVersion: version, localId, globalId: guids[0], category: categoryById.get(localId), data: data[0] }));
+      // Rapid clicks must toggle in arrival order, even when IFC reads finish out of order.
+      if (fromModel) pickQueue = pickQueue.then(async () => {
+        const selection = await resolveSelection;
+        if (model === currentModel && !loading) onPick(selection);
+      }).catch(error => { if (model === currentModel && !loading) onStatus(`Could not select location: ${error.message}`); });
       try {
-        const [data, guids] = await Promise.all([model.getItemsData([localId]), model.getGuidsByLocalIds([localId])]);
-        if (epoch !== selectionEpoch || model !== currentModel) return;
-        onSelection(normalizeSelection({ modelVersion: version, localId, globalId: guids[0], category: categoryById.get(localId), data: data[0] }));
+        const selection = await resolveSelection;
+        if (epoch === selectionEpoch && model === currentModel) onSelection(selection);
       } catch (error) {
         if (epoch === selectionEpoch) onStatus(`Could not read component: ${error.message}`);
       }
@@ -281,7 +296,8 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
           if (format === 'ifc' && !new TextDecoder().decode(bytes.slice(0, 256)).includes('ISO-10303-21')) throw new TypeError('This file does not contain a supported IFC STEP header');
           const digest = await crypto.subtle.digest('SHA-256', bytes);
           const version = `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')}`;
-          await highlighter.clear('select');
+          proposalState = null;
+          await highlighter.clear();
           replacing = true;
           resetRegions();
           fittedMagnification = null;
@@ -342,6 +358,21 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         }
       }
 
+    function applyProposalHighlights() {
+      const state = proposalState, model = currentModel;
+      proposalQueue = proposalQueue.catch(() => {}).then(async () => {
+        if (!model || loading || currentModel !== model || state?.version !== modelVersion) return;
+        const visible = new Set(displayIds);
+        for (const style of ['recommended', 'picked']) {
+          if (currentModel !== model || loading) return;
+          const valid = showAfter ? [] : state[style].filter(id => visible.has(id));
+          if (valid.length) await highlighter.highlightByID(style, { [model.modelId]: new Set(valid) }, true, false);
+          else await highlighter.clear(style);
+        }
+      });
+      return proposalQueue;
+    }
+
     return {
       openIfc: (file) => openFile(file, 'ifc'),
       openFragments: (file) => openFile(file, 'frag'),
@@ -373,8 +404,8 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
 
       },
       removeRegion(id) { regionEpoch++; pendingRegion = null; regions.delete(id); publishRegions(); renderOverlays(); },
-      setPlan(plan, after = true) { activePlan = plan; showAfter = after; if (after) void highlighter.clear('select'); renderOverlays(); },
-      setBeforeAfter(after) { if (after) void highlighter.clear('select'); showAfter = after; overlays.visible = Boolean(activePlan) && after; },
+      setPlan(plan, after = true) { activePlan = plan; showAfter = after; if (after) void highlighter.clear('select'); void applyProposalHighlights().catch(error => onStatus(error.message)); renderOverlays(); },
+      setBeforeAfter(after) { if (after) void highlighter.clear('select'); showAfter = after; void applyProposalHighlights().catch(error => onStatus(error.message)); overlays.visible = Boolean(activePlan) && after; },
       getRegions() { return [...regions.values()].map(({ data }) => structuredClone(data)); },
       setRenderStyle(style) {
         renderStyle = style;
@@ -392,11 +423,17 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         resetZoomReference();
       },
       async clearSelection() { await highlighter.clear('select'); },
+      setProposalHighlights({ recommended = [], picked = [], version }) {
+        proposalState = { recommended, picked, version };
+        return applyProposalHighlights();
+      },
       async highlightRoof(globalId) {
         if (!currentModel || loading) return;
         const [id] = await currentModel.getLocalIdsByGuids([globalId]);
         if (id === null) throw new Error('That IFC GlobalId is not present in the loaded model');
-        await highlighter.highlightByID('select', { [currentModel.modelId]: new Set([id]) });
+        programmaticSelection++;
+        try { await highlighter.highlightByID('select', { [currentModel.modelId]: new Set([id]) }); }
+        finally { programmaticSelection--; }
       },
       async dispose() {
         controls.removeEventListener('update', updateCamera);
