@@ -136,8 +136,6 @@ async function analyseLocations(question = '') {
   if (!loadedModel || importing) { $('assistant-answer').textContent = 'Load a building before finding planting candidates.'; return; }
   const epoch = ++assistantEpoch, version = loadedModel.modelVersion;
   analysing = true;
-  stopReading();
-  $('voice-read').disabled = true;
   $('analyse-building').disabled = $('assistant-ask').disabled = true;
   $('assistant-candidates').replaceChildren();
   $('assistant-answer').textContent = 'Screening IFC identities and actual display faces…';
@@ -174,19 +172,18 @@ async function analyseLocations(question = '') {
     const summary = Object.entries(counts).map(([type, count]) => `${chinese ? {roof:'屋顶',facade:'立面',terrace:'露台',ground:'庭院'}[type] : REGION_TYPES[type]}: ${count}`).join(' · ');
     $('assistant-answer').textContent = chinese ? `初筛候选数量：${summary}。已按构件用途、朝向、坡度和位置筛选。仍需确认外部空间与工程条件；普通楼板不能替代露台，庭院用地也不能从模型推断。点击 Locate 查看位置，再确认可用面积。当前是规则筛选，尚未接入 AI 模型。` : `Conditional candidates: ${summary}. Candidates are ranked by compatible display area. Check location, exposure and unresolved engineering requirements before confirming. Ordinary floors are not terrace candidates, and available land cannot be inferred. This is rule-based screening; AI is not connected.`;
   } catch (error) { if (epoch === assistantEpoch) $('assistant-answer').textContent = error.message; }
-  finally { if (epoch === assistantEpoch) { analysing = false; refreshImportControls(); $('voice-read').disabled = !window.speechSynthesis || !$('assistant-candidates').children.length; } }
+  finally { if (epoch === assistantEpoch) { analysing = false; refreshImportControls(); } }
 }
 $('analyse-building').addEventListener('click', () => void analyseLocations());
 $('assistant-ask').addEventListener('click', () => void analyseLocations($('assistant-question').value.trim()));
 const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
 let recognition = null;
 function resetVoiceButton() { $('voice-record').textContent = 'Start voice input'; $('voice-record').setAttribute('aria-pressed', 'false'); }
-function stopVoice() { recognition?.abort(); stopReading(); }
+function stopVoice() { recognition?.abort(); }
 $('voice-record').disabled = !Recognition;
 if (!Recognition) $('voice-status').textContent = 'Voice recognition is unavailable in this browser. Type your question instead.';
 $('voice-record').addEventListener('click', () => {
   if (recognition) { recognition.stop(); return; }
-  stopReading();
   const current = new Recognition(); recognition = current;
   current.lang = $('voice-language').value; current.continuous = false; current.interimResults = false;
   $('voice-record').textContent = 'Stop voice input'; $('voice-record').setAttribute('aria-pressed', 'true');
@@ -196,21 +193,6 @@ $('voice-record').addEventListener('click', () => {
   current.onerror = event => { $('voice-status').textContent = `Voice input: ${event.error}. You can type your question instead.`; };
   current.onend = () => { if (recognition === current) { recognition = null; resetVoiceButton(); } };
   try { current.start(); } catch (error) { recognition = null; resetVoiceButton(); $('voice-status').textContent = error.message; }
-});
-let utterance = null;
-function stopReading() { window.speechSynthesis?.cancel(); utterance = null; $('voice-read').textContent = 'Read guidance aloud'; }
-$('voice-read').addEventListener('click', () => {
-  if (utterance) { stopReading(); return; }
-  recognition?.abort();
-  const language = $('voice-language').value;
-  const current = new SpeechSynthesisUtterance($('assistant-answer').textContent);
-  current.lang = /[\u3400-\u9fff]/.test(current.text) ? (language.startsWith('zh') ? language : 'zh-HK') : 'en-US';
-  const voice = window.speechSynthesis.getVoices().find(voice => voice.lang.toLowerCase() === current.lang.toLowerCase());
-  if (voice) current.voice = voice;
-  utterance = current; $('voice-read').textContent = 'Stop reading';
-  current.onend = () => { if (utterance === current) { utterance = null; $('voice-read').textContent = 'Read guidance aloud'; } };
-  current.onerror = event => { if (utterance === current) { stopReading(); $('voice-status').textContent = `Speech output: ${event.error}. Read the guidance below instead.`; } };
-  window.speechSynthesis.speak(current);
 });
 $('inspector-panel').addEventListener('close', stopVoice);
 
@@ -505,8 +487,7 @@ try {
     },
     onModel: (model) => {
       assistantEpoch++; analysing = false; candidateCache.clear(); stopVoice();
-      $('voice-read').disabled = true;
-      $('assistant-candidates').replaceChildren();
+          $('assistant-candidates').replaceChildren();
       $('assistant-answer').textContent = 'Find candidates for the current model. Nothing is added automatically.';
       loadedModel = model;
       $('project-label').textContent = model?.fileName ?? 'Start a building review';

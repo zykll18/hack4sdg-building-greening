@@ -19,7 +19,7 @@ Plan results carry model version, plan ID, comparison period, calculation versio
 
 1. Load the KIT office example and a user-selected IFC. Confirm stable model/element identity and usable camera navigation.
 2. Add confirmed roof, facade and terrace regions from displayed IFC geometry. Use a model with an explicit balcony/terrace identity to demonstrate that region. If a model has no compatible terrace, show the empty candidate state instead of assigning an ordinary slab. Edge strips only crop an already compatible surface.
-3. In Inspect, find screened candidates, review reasons/missing checks, locate the component, and acknowledge exterior/available area before confirmation. Verify voice transcription review, manual submission, speech output, permission/error fallback and abort on close/replacement. No AI service is connected.
+3. In Inspect, find screened candidates, review reasons/missing checks, locate the component, and acknowledge exterior/available area before confirmation. Verify voice transcription review, manual submission, permission/error fallback and abort on close/replacement. No AI service is connected.
 4. Define a ground rectangle outside the conservative building footprint, set its dimensions/offsets, and confirm its available area and use.
 5. Switch Light-touch / Landscape mix and Before / After. Original IFC geometry stays unchanged; overlays and comparison results use the same region inputs.
 6. Edit period/budget, remove a region and confirm both plans and exports update consistently.
