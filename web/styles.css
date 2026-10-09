@@ -200,3 +200,18 @@ select { width: 100%; border: 1px solid var(--border); border-radius: 6px; paddi
 
 .voice-controls { margin: 16px 0; }
 .voice-controls summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+
+.proposal-candidate { padding: 16px 0; border-bottom: 1px solid var(--border); }
+#inspection-guidance .candidate-choice { display: flex; align-items: flex-start; gap: 10px; margin: 0; color: #243432; }
+#assistant-candidates .candidate-choice strong { margin: 0; overflow-wrap: anywhere; }
+.candidate-choice input { flex: 0 0 auto; margin-top: 2px; accent-color: var(--accent); }
+.proposal-candidate details > summary, .more-candidates > summary { cursor: pointer; font-size: 11px; color: var(--muted); line-height: 1.5; }
+#inspection-guidance .candidate-area { margin-top: 12px; }
+.candidate-area input { padding: 9px; border-radius: 6px; width: 100%; border: 1px solid var(--border); margin-top: 6px; }
+#inspection-guidance .grid-option { display: flex; align-items: flex-start; line-height: 1.6; gap: 10px; }
+#combination-summary { font-weight: 600; color: var(--accent); }
+#combination-controls { border-top: 1px solid var(--border); padding-top: 16px; }
+.more-candidates { margin-top: 16px; }
+
+.candidate-area-error { color: #994834; font-size: 11px; line-height: 1.6; }
+.candidate-area input[aria-invalid=true] { border-color: #994834; }

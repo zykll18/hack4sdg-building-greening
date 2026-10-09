@@ -42,6 +42,9 @@ let lastPlan = 'light';
 let candidateEpoch = 0;
 let assistantEpoch = 0;
 let analysing = false;
+let applyingCombination = false;
+let combinationEpoch = 0;
+let proposalRows = [];
 const candidateCache = new Map();
 async function screenedCandidates(type) {
   if (!viewer || !loadedModel || importing) return [];
@@ -134,9 +137,12 @@ document.addEventListener('keydown', (event) => {
 async function analyseLocations(question = '') {
   openPanel('inspector-panel');
   if (!loadedModel || importing) { $('assistant-answer').textContent = 'Load a building before finding planting candidates.'; return; }
+  if (applyingCombination) return;
   const epoch = ++assistantEpoch, version = loadedModel.modelVersion;
   analysing = true;
   $('analyse-building').disabled = $('assistant-ask').disabled = true;
+  proposalRows = []; $('confirm-combination').checked = false;
+  $('combination-controls').hidden = true; $('combination-status').textContent = '';
   $('assistant-candidates').replaceChildren();
   $('assistant-answer').textContent = 'Screening IFC identities and actual display faces…';
   const counts = {};
@@ -153,29 +159,110 @@ async function analyseLocations(question = '') {
         note.textContent = type === 'ground' ? 'No available land can be inferred from this IFC. Define a rectangle outside the building footprint and confirm land availability, level and utilities.' : 'No compatible candidate found. Do not convert an ordinary floor or an incompatible component into a planting area.';
         section.append(note);
       }
-      for (const candidate of candidates.slice(0, 3)) {
-        const name = document.createElement('strong'), reason = document.createElement('p'), locate = document.createElement('button');
-        name.textContent = `${candidate.name} · ${candidate.geometryAreaM2.toFixed(1)} m² display estimate`;
-        reason.className = 'note'; reason.textContent = [...candidate.screening.reasons, ...candidate.screening.missing].join(' ');
-        locate.type = 'button'; locate.textContent = 'Locate & review';
+      let more;
+      candidates.forEach((candidate, index) => {
+        if (!candidate.globalId) return;
+        const row = document.createElement('div'); row.className = 'proposal-candidate';
+        const choice = document.createElement('label'); choice.className = 'candidate-choice';
+        const checkbox = document.createElement('input'); checkbox.type = 'checkbox';
+        const name = document.createElement('strong'); name.textContent = `${candidate.name} · ${candidate.globalId.slice(-6)}`;
+        choice.append(checkbox, name);
+        const estimate = document.createElement('p'); estimate.className = 'note'; estimate.textContent = `${candidate.geometryAreaM2.toFixed(1)} m² compatible display estimate · conditional`;
+        const details = document.createElement('details'), summary = document.createElement('summary'), reason = document.createElement('p');
+        summary.textContent = 'Why this candidate / missing checks'; reason.className = 'note';
+        reason.textContent = [...candidate.screening.reasons, ...candidate.screening.missing].join(' '); details.append(summary, reason);
+        const systems = document.createElement('p'); systems.className = 'note'; systems.textContent = PLANS.map(plan => `${plan.name}: ${plan.profiles[type].name}`).join(' · ');
+        const areaLabel = document.createElement('label'); areaLabel.className = 'candidate-area'; areaLabel.append('Usable area (m²)');
+        const area = document.createElement('input'); area.type = 'number'; area.min = '.01'; area.step = '.01'; area.max = String(candidate.geometryAreaM2);
+        area.value = (Math.floor(candidate.geometryAreaM2 * 100) / 100).toFixed(2); areaLabel.append(area);
+        const areaError = document.createElement('p'); areaError.className = 'candidate-area-error'; areaError.id = `proposal-area-${type}-${candidate.localId}`; areaError.hidden = true; areaError.setAttribute('role', 'alert');
+        area.setAttribute('aria-describedby', areaError.id);
+        const locate = document.createElement('button'); locate.type = 'button'; locate.textContent = 'Locate & inspect';
         locate.addEventListener('click', async () => {
-          if (loadedModel?.modelVersion !== version || importing) return;
+          if (loadedModel?.modelVersion !== version || importing || applyingCombination) return;
           $('region-type').value = type; updateRegionType();
           try { await viewer.highlightRoof(candidate.globalId); openPanel('inspector-panel'); }
           catch (error) { $('assistant-answer').textContent = error.message; }
         });
-        section.append(name, reason, locate);
-      }
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) for (const other of proposalRows) if (other.candidate.globalId === candidate.globalId && other.checkbox !== checkbox) other.checkbox.checked = false;
+          $('confirm-combination').checked = false; updateCombinationControls();
+        });
+        area.addEventListener('input', () => { $('confirm-combination').checked = false; updateCombinationControls(); });
+        row.append(choice, estimate, details, systems, areaLabel, areaError, locate);
+        proposalRows.push({ type, candidate, checkbox, area, areaError, locate });
+        if (index < 3) section.append(row);
+        else {
+          if (!more) { more = document.createElement('details'); more.className = 'more-candidates'; const heading = document.createElement('summary'); heading.textContent = `More ${REGION_TYPES[type].toLowerCase()} candidates (${candidates.length - 3})`; more.append(heading); section.append(more); }
+          more.append(row);
+        }
+      });
       $('assistant-candidates').append(section);
     }
     const chinese = /[\u3400-\u9fff]/.test(question) || (!question && $('voice-language').value.startsWith('zh'));
     const summary = Object.entries(counts).map(([type, count]) => `${chinese ? {roof:'屋顶',facade:'立面',terrace:'露台',ground:'庭院'}[type] : REGION_TYPES[type]}: ${count}`).join(' · ');
-    $('assistant-answer').textContent = chinese ? `初筛候选数量：${summary}。已按构件用途、朝向、坡度和位置筛选。仍需确认外部空间与工程条件；普通楼板不能替代露台，庭院用地也不能从模型推断。点击 Locate 查看位置，再确认可用面积。当前是规则筛选，尚未接入 AI 模型。` : `Conditional candidates: ${summary}. Candidates are ranked by compatible display area. Check location, exposure and unresolved engineering requirements before confirming. Ordinary floors are not terrace candidates, and available land cannot be inferred. This is rule-based screening; AI is not connected.`;
+    $('assistant-answer').textContent = chinese ? `初筛候选数量：${summary}。已按构件用途、朝向、坡度和位置筛选。仍需确认外部空间与工程条件；普通楼板不能替代露台，庭院用地也不能从模型推断。可以选择推荐组合或勾选多个位置，点击 Locate 核查位置、调整每块面积，确认后一次加入两套方案。当前是规则筛选，尚未接入 AI 模型。` : `Conditional candidates: ${summary}. Select a suggested set or choose multiple locations, inspect each face and edit its usable area, then add the reviewed set to both plans. Check exposure and unresolved engineering requirements before confirming. Ordinary floors are not terrace candidates, and available land cannot be inferred. This is rule-based screening; AI is not connected.`;
   } catch (error) { if (epoch === assistantEpoch) $('assistant-answer').textContent = error.message; }
-  finally { if (epoch === assistantEpoch) { analysing = false; refreshImportControls(); } }
+  finally { if (epoch === assistantEpoch) { analysing = false; $('combination-controls').hidden = !proposalRows.length; refreshImportControls(); } }
 }
 $('analyse-building').addEventListener('click', () => void analyseLocations());
 $('assistant-ask').addEventListener('click', () => void analyseLocations($('assistant-question').value.trim()));
+function updateCombinationControls() {
+  const busy = importing || analysing || applyingCombination || !loadedModel;
+  for (const row of proposalRows) {
+    const assigned = plannedRegions.some(region => region.globalId === row.candidate.globalId);
+    if (assigned) row.checkbox.checked = false;
+    row.checkbox.disabled = busy || assigned || row.candidate.modelVersion !== loadedModel?.modelVersion;
+    row.area.disabled = row.checkbox.disabled || !row.checkbox.checked;
+    const invalid = row.checkbox.checked && (!Number.isFinite(Number(row.area.value)) || Number(row.area.value) <= 0 || Number(row.area.value) > row.candidate.geometryAreaM2 * 1.001);
+    row.area.setAttribute('aria-invalid', String(invalid)); row.areaError.hidden = !invalid;
+    row.areaError.textContent = invalid ? `Enter a positive usable area within ${row.candidate.geometryAreaM2.toFixed(2)} m². The whole set is waiting for this correction.` : '';
+    row.locate.disabled = busy;
+  }
+  const chosen = proposalRows.filter(row => row.checkbox.checked);
+  const total = chosen.reduce((sum, row) => sum + Number(row.area.value), 0);
+  const valid = chosen.length && chosen.every(row => Number.isFinite(Number(row.area.value)) && Number(row.area.value) > 0 && Number(row.area.value) <= row.candidate.geometryAreaM2 * 1.001);
+  $('combination-summary').textContent = chosen.length ? `${chosen.length} selected region(s) · ${Number.isFinite(total) ? total.toFixed(2) : '—'} m² proposed usable area. Both plans will use this same set alongside ${plannedRegions.length} already-added region(s).` : 'Choose several locations below, or use Select suggested set. Already-added components are unavailable.';
+  $('review-combination').disabled = importing || applyingCombination || !plannedRegions.length;
+  $('add-combination').disabled = busy || !valid || !$('confirm-combination').checked;
+  $('confirm-combination').disabled = busy || !chosen.length;
+  $('select-suggested').disabled = busy || !proposalRows.some(row => !row.checkbox.disabled);
+  $('clear-candidates').disabled = busy || !chosen.length;
+  $('add-combination').textContent = applyingCombination ? 'Preparing selected surfaces…' : 'Add selected regions to both plans';
+}
+$('confirm-combination').addEventListener('change', updateCombinationControls);
+$('select-suggested').addEventListener('click', () => {
+  const limits = { roof: 3, facade: 2, terrace: 2 }, counts = {}, guids = new Set();
+  for (const row of proposalRows) {
+    row.checkbox.checked = false;
+    if (!row.checkbox.disabled && !guids.has(row.candidate.globalId) && (counts[row.type] ?? 0) < limits[row.type]) {
+      row.checkbox.checked = true; guids.add(row.candidate.globalId); counts[row.type] = (counts[row.type] ?? 0) + 1;
+    }
+  }
+  $('confirm-combination').checked = false; $('combination-status').textContent = 'Starting set selected. Locate each face, review its checks and edit usable areas before confirming.';
+  updateCombinationControls();
+});
+$('clear-candidates').addEventListener('click', () => {
+  for (const row of proposalRows) row.checkbox.checked = false;
+  $('confirm-combination').checked = false; $('combination-status').textContent = ''; updateCombinationControls();
+});
+$('add-combination').addEventListener('click', async () => {
+  if ($('add-combination').disabled) return;
+  const epoch = ++combinationEpoch;
+  const requests = proposalRows.filter(row => row.checkbox.checked).map(row => ({ type: row.type, localId: row.candidate.localId, globalId: row.candidate.globalId, modelVersion: row.candidate.modelVersion, area: Number(row.area.value) }));
+  applyingCombination = true; invalidateRegionDraft(); refreshImportControls();
+  $('combination-status').textContent = `Rechecking ${requests.length} source surfaces before adding the complete set…`;
+  try {
+    const added = await viewer.addCandidateRegions(requests, $('confirm-combination').checked);
+    if (epoch !== combinationEpoch) return;
+    $('confirm-combination').checked = false;
+    selected = lastPlan; viewer.setPlan(PLANS.find(plan => plan.id === selected), true); render();
+    $('combination-status').textContent = `${added.length} regions added together. Open Compare to review totals for all ${plannedRegions.length} planned regions, or remove regions in Planned regions to revise the set.`;
+    showStatus('Showing combined planting. Before / After and Compare use all confirmed regions.');
+  } catch (error) { if (epoch === combinationEpoch) $('combination-status').textContent = error.message; }
+  finally { if (epoch === combinationEpoch) { applyingCombination = false; refreshImportControls(); } }
+});
+
 const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
 let recognition = null;
 function resetVoiceButton() { $('voice-record').textContent = 'Start voice input'; $('voice-record').setAttribute('aria-pressed', 'false'); }
@@ -298,6 +385,8 @@ $('add-region').addEventListener('click', () => {
 });
 function showRegions(regions) {
   plannedRegions = regions;
+  if (!applyingCombination) $('combination-status').textContent = regions.length ? `${regions.length} planned region(s). Changes are shared by both comparison plans.` : '';
+  $('confirm-combination').checked = false; updateCombinationControls();
   if (!regions.length) { selected = null; invalidateRegionDraft(); }
   $('region-count').textContent = String(regions.length);
   $('region-list').replaceChildren();
@@ -306,7 +395,7 @@ function showRegions(regions) {
     text.textContent = `${REGION_TYPES[region.type]} · ${region.usableArea.value.toFixed(2)} m²`;
     note.textContent = region.name; text.append(note);
     remove.type = 'button'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove ${region.name}`);
-    remove.addEventListener('click', () => viewer.removeRegion(region.id));
+    remove.addEventListener('click', () => { invalidateRegionDraft(); viewer.removeRegion(region.id); });
     item.append(text, remove); $('region-list').append(item);
   }
   if (!regions.length) {
@@ -396,8 +485,10 @@ function refreshImportControls() {
   $('render-style').disabled = importing || !viewer;
   $('show-grid').disabled = importing || !viewer;
   $('clear-selection').disabled = importing || !loadedModel;
-  $('prepare-region').disabled = importing || !loadedModel || !viewer || (!selectedComponent && $('region-type').value !== 'ground');
-  $('analyse-building').disabled = $('assistant-ask').disabled = importing || !loadedModel || analysing;
+  $('prepare-region').disabled = importing || applyingCombination || !loadedModel || !viewer || (!selectedComponent && $('region-type').value !== 'ground');
+  $('analyse-building').disabled = $('assistant-ask').disabled = importing || !loadedModel || analysing || applyingCombination;
+  updateCombinationControls();
+  for (const button of $('region-list').querySelectorAll('button')) button.disabled = importing || applyingCombination;
   $('loading-overlay').hidden = !importing;
   $('viewer-empty').hidden = importing || Boolean(loadedModel);
   $('bim-container').setAttribute('aria-busy', String(importing));
@@ -486,8 +577,9 @@ try {
       if (percent !== null) $('zoom-percent').textContent = `${percent}%`;
     },
     onModel: (model) => {
-      assistantEpoch++; analysing = false; candidateCache.clear(); stopVoice();
-          $('assistant-candidates').replaceChildren();
+      assistantEpoch++; analysing = false; combinationEpoch++; applyingCombination = false; proposalRows = []; candidateCache.clear(); stopVoice();
+      $('combination-controls').hidden = true; $('confirm-combination').checked = false; $('combination-status').textContent = '';
+      $('assistant-candidates').replaceChildren();
       $('assistant-answer').textContent = 'Find candidates for the current model. Nothing is added automatically.';
       loadedModel = model;
       $('project-label').textContent = model?.fileName ?? 'Start a building review';

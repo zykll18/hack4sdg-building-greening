@@ -96,3 +96,14 @@ All 16 automated tests pass, including compatibility rejection and continuous co
 
 
 The user subsequently requested removal of the Read guidance aloud control. The button and browser speech-synthesis handlers have been removed. Inspect retains voice input, reviewed transcripts, text screening explanations and candidate locating. Speech-output acceptance is no longer part of the current flow.
+
+
+## Combined region proposal — 2026-10-09
+
+Inspect supports multi-select candidates, per-region usable areas, expandable remaining candidates, a suggested starting set, shared acknowledgement and atomic addition to both plans. Single-component locating is an inspection action and no longer limits the proposal to one region. The starting set uses area-ranked compatible candidates with up to three roof, two facade and two explicit terrace regions; it is not an optimised or engineering-approved recommendation.
+
+An independent in-app browser test loaded the 784-component office, found 15 conditional roof/121 conditional wall/no explicit terrace candidates and selected three roof and two facade components. An area of 100 m² on a 39.73 m² roof disabled set addition. After changing that area to 30 m² and acknowledging the synthetic sample regions, the browser added all five together, totalling 289.52 m² confirmed-for-test usable area. Both comparison tables contain all five regions: displayed coverage rounds to 147 m² for Light-touch and 161 m² for Landscape mix; displayed installation costs are HK$151,729 and HK$424,053. These are presentation calculations, not quotes or measured performance. Landscape selection and Before/After controls switch correctly, and the saved model screenshot shows separate roof and facade planting on the same office geometry.
+
+Twenty automated tests pass, including whole-set aggregation, input immutability on a later invalid member, duplicate/stale model rejection, compatibility acknowledgement and ground overlap. Browser export was initiated, but download capture timed out, so downloaded file contents are not yet browser-verified. Microphone recognition and engineering suitability remain unverified. The synthetic test acknowledgement is not a professional approval of the sample walls or roofs.
+
+The final browser pass also verifies the inline invalid-area explanation, disabling already-added candidates, region removal (five to four) making the original component available again, re-adding it through the individual review path (four to five), and replacing the model with KIT-FZK-Haus clearing planned regions, candidate rows and Before/After controls. Browser checkbox confirmation was exercised by keyboard after a pointer automation scroll failed; pointer acceptance of that control is not established by this pass.

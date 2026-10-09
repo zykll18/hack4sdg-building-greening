@@ -11,7 +11,9 @@ That Open display geometry + stable GlobalId + model content hash
           ↓
 Inspect: geometry/identity screening + voice/text questions
           ↓
-Select conditional candidate / define ground rectangle outside building footprint
+Select suggested combination / choose multiple conditional candidates
+          ↓
+Review each face and usable area / define ground rectangles outside building footprint
           ↓
 Extract display face → optional edge strip → acknowledge exterior/available space and checks → confirm usable area
           ↓
@@ -28,9 +30,10 @@ Before/after on original model + HTML report + JSON handoff
 
 The browser app retains plain JavaScript, Vite, Three.js and the installed That Open Components/Components Front/Fragments/WebIFC/Camera Controls packages. No backend, UI framework replacement, new runtime dependency or directory change is introduced. Local IFC files remain in the browser; bundled samples carry source links and redistribution notices. Voice recognition is an explicitly initiated browser API and may use the browser provider's speech service; it is separate from local IFC processing.
 
-- `src/adapters/bim-viewer.js` (A) owns initialization, IFC/Fragments import, camera, selection, candidate lookup, region preparation/confirmation, independent overlay rendering, model replacement and cleanup.
+- `src/adapters/bim-viewer.js` (A) owns initialization, IFC/Fragments import, camera, selection, candidate lookup, shared region preparation, single and atomic batch confirmation, independent overlay rendering, model replacement and cleanup.
 - `src/adapters/greening-geometry.js` (A) handles world transforms, face filtering, edge-strip clipping and continuous clipped area-proportional visual coverage. Separating geometry from browser lifecycle permits meaningful tests against original IFC triangles.
 - `src/domain/region-screening.js` (A/C integration) isolates conservative IFC identity, slope, upper-envelope and footprint screening from rendering. This pure module makes compatibility rules testable without a browser; it adds no dependency, directory or backend. Thresholds are presentation assumptions, not building-code checks.
+- `src/domain/region-confirmation.js` (A/B integration) validates single or batch confirmations before any region collection mutation. Extracting the existing area/identity/overlap checks into a pure module ensures a later invalid region cannot partially commit a set and makes failure rollback testable; it adds no dependency or directory.
 - `src/domain/greening-plan.js` (B/C integration) defines two presentation profiles for all four region types and aggregates the existing deterministic calculator. The original roof-shaped calculator input is an internal compatibility adapter; exported results use region identifiers. This avoids replacing working arithmetic or adding a second calculation engine.
 - `src/domain/calculate.js` (B) retains unit/provenance validation and deterministic intervention arithmetic.
 - `web/` (D) owns floating panels, region confirmation/list/removal, plan selection, before/after controls, comparison period/budget and report/JSON exports.
@@ -60,7 +63,7 @@ Workspace buttons and the IFC upload control share a water-ripple interaction. A
 
 ## Inspect location guidance and voice interaction
 
-Inspect contains component properties, location recommendations, voice/text questions and region confirmation. There is no separate Assist dock or panel. Candidates are screened from original display geometry and identity, ranked by compatible area, and show reasons plus unresolved checks; Locate selects the original component for review. Available ground land cannot be inferred. The recommendation and draft paths share the same rules, and explicit exterior/availability acknowledgement is required before adding a region. Screening and acknowledgements are exported with the region.
+Inspect contains component properties, location recommendations, voice/text questions and region confirmation. There is no separate Assist dock or panel. Candidates are screened from original display geometry and identity, ranked by compatible area, and show reasons plus unresolved checks. Candidate rows provide a checkbox, editable usable area, compatible systems for both plans and Locate. A suggested starting set selects up to three roof, two facade and two explicitly identified terrace components from that ranking, skipping already assigned or duplicate GlobalIds. This is a reviewable starting set, not AI inference, budget optimisation or engineering suitability. All candidates are accessible, with additional rows collapsed under each category. Locate selects the original component for inspection while preserving the chosen set. Available ground land cannot be inferred. The recommendation and draft paths share the same rules, and explicit exterior/availability and area acknowledgement is required before adding a region or a whole selected set. Changes to chosen areas/locations reset acknowledgement. Batch addition rereads source identity and geometry, checks all members against current-model rules and existing regions, then publishes and renders one complete collection update. A validation failure leaves existing regions unchanged; old model/planning results are rejected. Assigned components are disabled in the candidate list, and Compare combined plans opens aggregate results for all planned regions. Single-region editing remains available for detailed crops or ground rectangles. Screening and acknowledgements are exported with the region.
 
 Browser SpeechRecognition/webkitSpeechRecognition offers requested `zh-HK`, `zh-CN` and `en-US` languages when supported. Recording starts only on a user action. Users review/edit transcripts and separately ask; transcripts never automatically create regions. Unsupported browsers, permission/network/language errors preserve text input. Closing Inspect, model replacement and hot reload stop voice activity. Cached screening is scoped to the current model and stale results are discarded.
 

@@ -5,7 +5,7 @@ An IFC-based presentation workspace for building professionals to compare greeni
 ## Presentation flow
 
 1. Run `npm ci` and `npm run dev`, then open `http://127.0.0.1:5173/` (Node 20.19+ or 22.12+). The KIT office architectural example opens as a full-viewport interactive model.
-2. Open **Inspect**. Choose **Find planting candidates** in Inspect, or click a component. Review screened roof/facade/explicit balcony-or-terrace candidates, their reasons and missing checks; **Locate & review** selects the source component. Ordinary floors are excluded as terraces. Optional edge strips reduce an already compatible surface.
+2. Open **Inspect**. Choose **Find planting locations** in Inspect. Use **Select suggested set** for a starting combination, or check several candidate rows. **More candidates** exposes the rest of each category. Edit each usable area and inspect the selected faces before acknowledging the set. **Add selected regions to both plans** confirms the entire set together; **Compare combined plans** shows aggregate results. You can also click a component for individual editing. Review screened roof/facade/explicit balcony-or-terrace candidates, their reasons and missing checks; **Locate & review** selects the source component. Ordinary floors are excluded as terraces. Optional edge strips reduce an already compatible surface.
 3. Click **Review region surface**, verify/edit the usable area within the extracted surface and acknowledge exterior/available space and unresolved professional checks, then confirm its type/area. Click **Add region to both plans**.
 4. For **Ground / courtyard**, set rectangle dimensions and offsets before reviewing/confirming. The rectangle must stay outside the conservative building bounding footprint. Confirm ground level, available land and utilities. It is user-defined design geometry, not an IFC site/ownership boundary.
 5. Open **Compare**, switch **Light-touch** / **Landscape mix**, and use **Before / After** on the model. Both plans use the same confirmed regions. Region removal updates both plans.
@@ -18,7 +18,7 @@ A/B/C/D presentation responsibilities and browser acceptance are in [TEAM_TASKS.
 
 ## Verification
 
-`npm test` runs deterministic calculation, identity, four-region aggregation, edge clipping, continuous visual coverage area and compatibility screening checks. `npm run build` produces the browser build. `node scripts/check-greening.mjs` checks original KIT office candidate screening, then separately exercises synthetic four-region geometry extraction, coverage and plan calculation without claiming browser or spatial suitability validation. `npm run test:ifc -- /path/to/file.ifc` verifies parser/conversion identities.
+`npm test` runs deterministic calculation, identity, whole-set confirmation without partial mutation, four-region aggregation, edge clipping, continuous visual coverage area and compatibility screening checks. `npm run build` produces the browser build. `node scripts/check-greening.mjs` checks original KIT office candidate screening, then separately exercises synthetic four-region geometry extraction, coverage and plan calculation without claiming browser or spatial suitability validation. `npm run test:ifc -- /path/to/file.ifc` verifies parser/conversion identities.
 
 ## Evidence boundaries
 

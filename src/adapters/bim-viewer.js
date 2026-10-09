@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as OBC from '@thatopen/components';
 import * as OBF from '@thatopen/components-front';
 import workerUrl from '@thatopen/fragments/worker?url';
+import { confirmRegionBatch } from '../domain/region-confirmation.js';
 import { screenRegion } from '../domain/region-screening.js';
 import { normalizeSelection } from './selection-data.js';
 import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface } from './greening-geometry.js';
@@ -187,11 +188,10 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       regionEpoch++; pendingRegion = null; regions.clear(); activePlan = null; showAfter = false;
       clearOverlayObjects(); publishRegions();
     }
-    async function prepareRegion({ type, selection, ground, crop }) {
+    async function buildRegion({ type, selection, ground, crop }, context) {
       if (!currentModel || loading) throw new Error('Load a model before planning a region');
       if (!['roof','facade','terrace','ground'].includes(type)) throw new Error('Select a region type');
-      const model = currentModel, version = modelVersion, epoch = ++regionEpoch, selectionStamp = selectionEpoch;
-      pendingRegion = null;
+      const { model, version, epoch, selectionStamp } = context;
       const center = buildingBox.getCenter(new THREE.Vector3());
       let surface, globalId = null, localId = null, name, geometrySource, placement;
       if (type === 'ground') {
@@ -200,7 +200,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       } else {
         if (!selection || selection.modelVersion !== version || !selection.globalId) throw new Error('Select an IFC component in the current model first');
         const meshes = (await model.getItemsGeometry([selection.localId]))[0];
-        if (epoch !== regionEpoch || currentModel !== model || selectionStamp !== selectionEpoch) throw new Error('Selection changed while preparing the region');
+        if (epoch !== regionEpoch || currentModel !== model || loading || (selectionStamp !== null && selectionStamp !== selectionEpoch)) throw new Error('Selection changed while preparing the region');
         model.object.updateMatrixWorld(true);
         surface = extractGreeningSurface(meshes, model.object.matrixWorld, type, center);
         const screening = screenRegion({ type, selection, surface, buildingBox });
@@ -213,21 +213,47 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       if (!screening.canPrepare) throw new Error(screening.reasons.join(' '));
       const id = `${version}:region:${++regionSequence}`;
       const data = { id, projectId: 'LOCAL-BUILDING-REVIEW', modelVersion: version, type, globalId, localId, name, geometrySource, surfaceCrop: type === 'ground' ? null : crop, screening, geometryAreaM2: surface.surfaceAreaM2, geometryAreaProvenance: 'assumed', geometryAreaSource: 'Display mesh estimate assuming model coordinates are metres; user confirmation required', placement: placement ?? null };
-      pendingRegion = { data, surface, selectionStamp };
-      return structuredClone(data);
+      if (epoch !== regionEpoch || currentModel !== model || loading) throw new Error('The building or planning state changed; review the regions again');
+      return { data, surface, selectionStamp };
+    }
+    async function prepareRegion(request) {
+      const context = { model: currentModel, version: modelVersion, epoch: ++regionEpoch, selectionStamp: selectionEpoch };
+      pendingRegion = null;
+      pendingRegion = await buildRegion(request, context);
+      return structuredClone(pendingRegion.data);
     }
     function confirmRegion(id, area, constraintsConfirmed = false) {
       if (!constraintsConfirmed) throw new Error('Confirm the exterior/available region and unresolved review requirements first');
       if (!pendingRegion || pendingRegion.data.id !== id || pendingRegion.data.modelVersion !== modelVersion || loading) throw new Error('Review the region again before confirming');
       if (pendingRegion.data.type !== 'ground' && pendingRegion.selectionStamp !== selectionEpoch) throw new Error('Selection changed; review the region again');
       const { data, surface } = pendingRegion;
-      if (!Number.isFinite(area) || area <= 0 || area > surface.surfaceAreaM2 * 1.001) throw new RangeError('Confirmed usable area must be positive and within the displayed region');
-      if (data.globalId && [...regions.values()].some(({ data: other }) => other.globalId === data.globalId)) throw new Error('This component is already assigned; remove its existing region to change its use');
-      if (data.type === 'ground' && [...regions.values()].some(({ data: other }) => other.placement && Math.abs(other.placement.x - data.placement.x) < (other.placement.width + data.placement.width) / 2 && Math.abs(other.placement.z - data.placement.z) < (other.placement.depth + data.placement.depth) / 2)) throw new Error('Ground regions overlap; move this rectangle before adding it');
-      data.constraintAcknowledgement = 'User acknowledges outdoor/available area and unresolved professional checks; not engineering approval';
-      data.usableArea = { value: area, unit: 'm2', provenance: 'user-confirmed', source: 'User-confirmed usable area for the selected presentation region; professional verification unresolved' };
-      regions.set(id, { data, surface }); pendingRegion = null;
-      publishRegions(); renderOverlays(); return structuredClone(data);
+      const [confirmed] = confirmRegionBatch({ entries: [{ data, area }], existing: [...regions.values()].map(region => region.data), constraintsConfirmed });
+      regions.set(id, { data: confirmed, surface }); pendingRegion = null; regionEpoch++;
+      publishRegions(); renderOverlays(); return structuredClone(confirmed);
+    }
+    async function addCandidateRegions(requests, constraintsConfirmed = false) {
+      if (!currentModel || loading) throw new Error('Load a building before adding regions');
+      if (!constraintsConfirmed || !requests.length) throw new Error('Select regions and confirm their areas and unresolved checks first');
+      const context = { model: currentModel, version: modelVersion, epoch: ++regionEpoch, selectionStamp: null };
+      pendingRegion = null;
+      const ids = requests.map(request => request.localId);
+      if (requests.some(request => request.modelVersion !== context.version || !displayIds.includes(request.localId))) throw new Error('A candidate belongs to an old or missing model');
+      const [data, guids] = await Promise.all([context.model.getItemsData(ids), context.model.getGuidsByLocalIds(ids)]);
+      if (context.model !== currentModel || context.epoch !== regionEpoch || loading) throw new Error('The building changed; find candidates again');
+      const prepared = [];
+      for (let index = 0; index < requests.length; index++) {
+        const request = requests[index];
+        if (!guids[index] || request.globalId !== guids[index]) throw new Error('The source component identity changed');
+        const selection = normalizeSelection({ modelVersion: context.version, localId: ids[index], globalId: guids[index], category: categoryById.get(ids[index]), data: data[index] });
+        const region = await buildRegion({ type: request.type, selection, crop: { side: 'full' } }, context);
+        prepared.push({ ...region, area: request.area });
+      }
+      // Every geometry, identity and confirmation must pass before a single collection update.
+      const confirmed = confirmRegionBatch({ entries: prepared, existing: [...regions.values()].map(region => region.data), constraintsConfirmed });
+      confirmed.forEach((data, index) => regions.set(data.id, { data, surface: prepared[index].surface }));
+      regionEpoch++;
+      publishRegions(); renderOverlays();
+      return structuredClone(confirmed);
     }
 
     async function setView(direction) {
@@ -322,6 +348,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       setView,
       prepareRegion,
       confirmRegion,
+      addCandidateRegions,
       async listRegionCandidates(type) {
         if (!currentModel || loading || type === 'ground') return [];
         const model = currentModel, version = modelVersion;
@@ -345,7 +372,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         return accepted.sort((a, b) => b.geometryAreaM2 - a.geometryAreaM2);
 
       },
-      removeRegion(id) { regions.delete(id); publishRegions(); renderOverlays(); },
+      removeRegion(id) { regionEpoch++; pendingRegion = null; regions.delete(id); publishRegions(); renderOverlays(); },
       setPlan(plan, after = true) { activePlan = plan; showAfter = after; if (after) void highlighter.clear('select'); renderOverlays(); },
       setBeforeAfter(after) { if (after) void highlighter.clear('select'); showAfter = after; overlays.visible = Boolean(activePlan) && after; },
       getRegions() { return [...regions.values()].map(({ data }) => structuredClone(data)); },
