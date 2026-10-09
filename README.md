@@ -5,18 +5,20 @@ An IFC-based presentation workspace for building professionals to compare greeni
 ## Presentation flow
 
 1. Run `npm ci` and `npm run dev`, then open `http://127.0.0.1:5173/` (Node 20.19+ or 22.12+). The KIT office architectural example opens as a full-viewport interactive model.
-2. Open **Inspect**. Click a component or choose an IFC category candidate. Choose Roof, Facade or Balcony / terrace. Use an edge strip for an exposed portion of a larger slab; user confirmation determines the proposed use.
-3. Click **Review region surface**, verify/edit the usable area within the extracted surface and confirm its type/area. Click **Add region to both plans**.
-4. For **Ground / courtyard**, set rectangle dimensions and offsets before reviewing/confirming. The rectangle is user-defined design geometry, not an IFC site/ownership boundary.
+2. Open **Inspect**. Choose **Find planting candidates** in Inspect, or click a component. Review screened roof/facade/explicit balcony-or-terrace candidates, their reasons and missing checks; **Locate & review** selects the source component. Ordinary floors are excluded as terraces. Optional edge strips reduce an already compatible surface.
+3. Click **Review region surface**, verify/edit the usable area within the extracted surface and acknowledge exterior/available space and unresolved professional checks, then confirm its type/area. Click **Add region to both plans**.
+4. For **Ground / courtyard**, set rectangle dimensions and offsets before reviewing/confirming. The rectangle must stay outside the conservative building bounding footprint. Confirm ground level, available land and utilities. It is user-defined design geometry, not an IFC site/ownership boundary.
 5. Open **Compare**, switch **Light-touch** / **Landscape mix**, and use **Before / After** on the model. Both plans use the same confirmed regions. Region removal updates both plans.
 6. In **Project**, edit the comparison period/budget or load another model. Replacement clears old regions and overlays.
 7. Download the HTML comparison report and JSON handoff. They retain current model/IFC identities, areas, systems, factors, checks and results for team integration.
+
+**Voice interaction stays in Inspect.** Expand **Voice input & questions**, choose Cantonese/Mandarin/English, start recording and review/edit the transcript. Choose **Ask about locations** to run the same screening, or type directly. **Read guidance aloud** plays the rule explanation when browser voices are available. Nothing is added automatically. Microphone access and language support depend on the browser; speech audio may be processed by its speech service. There is no separate Assist panel and no AI model connection yet.
 
 A/B/C/D presentation responsibilities and browser acceptance are in [TEAM_TASKS.md](TEAM_TASKS.md); implementation and provenance boundaries are in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Verification
 
-`npm test` runs deterministic calculation, identity, four-region aggregation, edge clipping and visual coverage area checks. `npm run build` produces the browser build. `node scripts/check-greening.mjs` exercises original KIT office IFC through geometry extraction, coverage and plan calculation without claiming browser or spatial suitability validation. `npm run test:ifc -- /path/to/file.ifc` verifies parser/conversion identities.
+`npm test` runs deterministic calculation, identity, four-region aggregation, edge clipping, continuous visual coverage area and compatibility screening checks. `npm run build` produces the browser build. `node scripts/check-greening.mjs` checks original KIT office candidate screening, then separately exercises synthetic four-region geometry extraction, coverage and plan calculation without claiming browser or spatial suitability validation. `npm run test:ifc -- /path/to/file.ifc` verifies parser/conversion identities.
 
 ## Evidence boundaries
 

@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import * as THREE from 'three';
 import { IfcImporter, SingleThreadedFragmentsModel } from '@thatopen/fragments';
 import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface } from '../src/adapters/greening-geometry.js';
+import { screenRegion } from '../src/domain/region-screening.js';
+import { normalizeSelection } from '../src/adapters/selection-data.js';
 import { calculatePlan, PLANS } from '../src/domain/greening-plan.js';
 const root=resolve(import.meta.dirname,'..');
 const input=process.argv[2] ?? resolve(root,'public/samples/KIT-Office.ifc');
@@ -17,6 +19,24 @@ try {
  const meshes=new Map();
  for(const id of ids){const parts=model.getItemsGeometry([id])[0]??[];meshes.set(id,parts);for(const part of parts){if(!part.positions)continue;const p=new THREE.Vector3();for(let i=0;i<part.positions.length;i+=3)box.expandByPoint(p.fromArray(part.positions,i).applyMatrix4(part.transform));}}
  const center=box.getCenter(new THREE.Vector3());
+ const screenings=[];
+ for(const type of ['roof','facade','terrace']){
+  const accepted=[];let blocked=0;
+  for(const [category,categoryIds] of Object.entries(categories)){
+   if(type==='facade' ? !/^IFCWALL/.test(category) : !/^(IFCROOF|IFCSLAB)$/.test(category))continue;
+   for(const localId of categoryIds){
+    if(!meshes.has(localId))continue;
+    try{
+     const surface=extractGreeningSurface(meshes.get(localId),new THREE.Matrix4(),type,center);
+     const selection=normalizeSelection({modelVersion:version,localId,category,globalId:model.getGuidsByLocalIds([localId])[0],data:model.getItemsData([localId])[0]});
+     const screening=screenRegion({type,selection,surface,buildingBox:box});
+     if(screening.canPrepare)accepted.push({localId,name:selection.name,areaM2:surface.surfaceAreaM2});else blocked++;
+    }catch{blocked++;}
+   }
+  }
+  accepted.sort((a,b)=>b.areaM2-a.areaM2);
+  screenings.push({type,conditionalCandidates:accepted.length,blocked,largest:accepted.slice(0,3)});
+ }
  const regions=[], checks=[];
  for(const type of ['roof','facade','terrace','ground']){
   let surface,selectedId=null;
@@ -35,5 +55,5 @@ try {
  }
  const results=PLANS.map(plan=>calculatePlan({regions,plan,years:20}));
  if(results.some(result=>result.items.length!==4))throw new Error('A region was lost in the plan output');
- console.log(JSON.stringify({input,displayComponents:ids.length,geometryChecks:checks,plans:results.map(({planId,coverageM2,totalCostHkd})=>({planId,coverageM2,totalCostHkd})),note:'Data-path test only; terrace/roof use assigned synthetically. Not browser, spatial suitability or engineering acceptance.'},null,2));
+ console.log(JSON.stringify({input,displayComponents:ids.length,screenings,geometryChecks:checks,plans:results.map(({planId,coverageM2,totalCostHkd})=>({planId,coverageM2,totalCostHkd})),note:'Screenings use the same geometry/identity rules as the viewer. The separate four-region arithmetic/coverage check assigns uses synthetically, including an ordinary slab as terrace, which the screening now excludes. Not browser, spatial suitability or engineering acceptance.'},null,2));
 }finally{model.dispose();}

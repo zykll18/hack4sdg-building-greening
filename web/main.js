@@ -40,6 +40,21 @@ let draftRegion = null;
 let preparationEpoch = 0;
 let lastPlan = 'light';
 let candidateEpoch = 0;
+let assistantEpoch = 0;
+let analysing = false;
+const candidateCache = new Map();
+async function screenedCandidates(type) {
+  if (!viewer || !loadedModel || importing) return [];
+  const model = loadedModel, version = model.modelVersion, key = `${version}:${type}`;
+  if (candidateCache.has(key)) return candidateCache.get(key);
+  const request = viewer.listRegionCandidates(type);
+  candidateCache.set(key, request);
+  try {
+    const candidates = await request;
+    if (loadedModel !== model || importing) return [];
+    return candidates;
+  } catch (error) { if (candidateCache.get(key) === request) candidateCache.delete(key); throw error; }
+}
 async function refreshCandidates() {
   const epoch = ++candidateEpoch, type = $('region-type').value;
   $('candidate-fields').hidden = type === 'ground';
@@ -48,11 +63,11 @@ async function refreshCandidates() {
   $('region-candidate').replaceChildren(placeholder);
   if (!viewer || !loadedModel || importing || type === 'ground') return;
   try {
-    const candidates = await viewer.listRegionCandidates(type);
+    const candidates = await screenedCandidates(type);
     if (epoch !== candidateEpoch) return;
     for (const candidate of candidates) {
       if (!candidate.globalId) continue;
-      const option = document.createElement('option'); option.value = candidate.globalId; option.textContent = `${candidate.name} · ${candidate.category} · ${candidate.localId}`;
+      const option = document.createElement('option'); option.value = candidate.globalId; option.textContent = `${candidate.name} · ${candidate.geometryAreaM2.toFixed(1)} m² · needs review`;
       $('region-candidate').append(option);
     }
     $('region-candidate').value = selectedComponent?.globalId ?? '';
@@ -116,6 +131,89 @@ document.addEventListener('keydown', (event) => {
     closePanel(panel);
   }
 });
+async function analyseLocations(question = '') {
+  openPanel('inspector-panel');
+  if (!loadedModel || importing) { $('assistant-answer').textContent = 'Load a building before finding planting candidates.'; return; }
+  const epoch = ++assistantEpoch, version = loadedModel.modelVersion;
+  analysing = true;
+  stopReading();
+  $('voice-read').disabled = true;
+  $('analyse-building').disabled = $('assistant-ask').disabled = true;
+  $('assistant-candidates').replaceChildren();
+  $('assistant-answer').textContent = 'Screening IFC identities and actual display faces…';
+  const counts = {};
+  const requested = /roof|屋頂|屋顶/i.test(question) ? ['roof'] : /facade|wall|立面|外牆|外墙/i.test(question) ? ['facade'] : /terrace|balcony|露台|陽台|阳台/i.test(question) ? ['terrace'] : /ground|courtyard|地面|庭院/i.test(question) ? ['ground'] : ['roof','facade','terrace','ground'];
+  try {
+    for (const type of requested) {
+      const candidates = type === 'ground' ? [] : await screenedCandidates(type);
+      if (epoch !== assistantEpoch || loadedModel?.modelVersion !== version || importing) return;
+      counts[type] = candidates.length;
+      const section = document.createElement('section'), heading = document.createElement('h3');
+      heading.textContent = `${REGION_TYPES[type]} · ${candidates.length} conditional candidate(s)`; section.append(heading);
+      if (!candidates.length) {
+        const note = document.createElement('p'); note.className = 'note';
+        note.textContent = type === 'ground' ? 'No available land can be inferred from this IFC. Define a rectangle outside the building footprint and confirm land availability, level and utilities.' : 'No compatible candidate found. Do not convert an ordinary floor or an incompatible component into a planting area.';
+        section.append(note);
+      }
+      for (const candidate of candidates.slice(0, 3)) {
+        const name = document.createElement('strong'), reason = document.createElement('p'), locate = document.createElement('button');
+        name.textContent = `${candidate.name} · ${candidate.geometryAreaM2.toFixed(1)} m² display estimate`;
+        reason.className = 'note'; reason.textContent = [...candidate.screening.reasons, ...candidate.screening.missing].join(' ');
+        locate.type = 'button'; locate.textContent = 'Locate & review';
+        locate.addEventListener('click', async () => {
+          if (loadedModel?.modelVersion !== version || importing) return;
+          $('region-type').value = type; updateRegionType();
+          try { await viewer.highlightRoof(candidate.globalId); openPanel('inspector-panel'); }
+          catch (error) { $('assistant-answer').textContent = error.message; }
+        });
+        section.append(name, reason, locate);
+      }
+      $('assistant-candidates').append(section);
+    }
+    const chinese = /[\u3400-\u9fff]/.test(question) || (!question && $('voice-language').value.startsWith('zh'));
+    const summary = Object.entries(counts).map(([type, count]) => `${chinese ? {roof:'屋顶',facade:'立面',terrace:'露台',ground:'庭院'}[type] : REGION_TYPES[type]}: ${count}`).join(' · ');
+    $('assistant-answer').textContent = chinese ? `初筛候选数量：${summary}。已按构件用途、朝向、坡度和位置筛选。仍需确认外部空间与工程条件；普通楼板不能替代露台，庭院用地也不能从模型推断。点击 Locate 查看位置，再确认可用面积。当前是规则筛选，尚未接入 AI 模型。` : `Conditional candidates: ${summary}. Candidates are ranked by compatible display area. Check location, exposure and unresolved engineering requirements before confirming. Ordinary floors are not terrace candidates, and available land cannot be inferred. This is rule-based screening; AI is not connected.`;
+  } catch (error) { if (epoch === assistantEpoch) $('assistant-answer').textContent = error.message; }
+  finally { if (epoch === assistantEpoch) { analysing = false; refreshImportControls(); $('voice-read').disabled = !window.speechSynthesis || !$('assistant-candidates').children.length; } }
+}
+$('analyse-building').addEventListener('click', () => void analyseLocations());
+$('assistant-ask').addEventListener('click', () => void analyseLocations($('assistant-question').value.trim()));
+const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+let recognition = null;
+function resetVoiceButton() { $('voice-record').textContent = 'Start voice input'; $('voice-record').setAttribute('aria-pressed', 'false'); }
+function stopVoice() { recognition?.abort(); stopReading(); }
+$('voice-record').disabled = !Recognition;
+if (!Recognition) $('voice-status').textContent = 'Voice recognition is unavailable in this browser. Type your question instead.';
+$('voice-record').addEventListener('click', () => {
+  if (recognition) { recognition.stop(); return; }
+  stopReading();
+  const current = new Recognition(); recognition = current;
+  current.lang = $('voice-language').value; current.continuous = false; current.interimResults = false;
+  $('voice-record').textContent = 'Stop voice input'; $('voice-record').setAttribute('aria-pressed', 'true');
+  $('voice-status').textContent = 'Waiting for microphone access…';
+  current.onstart = () => { $('voice-status').textContent = 'Listening… Your browser may send audio to its speech service.'; };
+  current.onresult = event => { $('assistant-question').value = event.results[0][0].transcript; $('voice-status').textContent = 'Review the transcript, then choose Ask about locations. No region has been added.'; };
+  current.onerror = event => { $('voice-status').textContent = `Voice input: ${event.error}. You can type your question instead.`; };
+  current.onend = () => { if (recognition === current) { recognition = null; resetVoiceButton(); } };
+  try { current.start(); } catch (error) { recognition = null; resetVoiceButton(); $('voice-status').textContent = error.message; }
+});
+let utterance = null;
+function stopReading() { window.speechSynthesis?.cancel(); utterance = null; $('voice-read').textContent = 'Read guidance aloud'; }
+$('voice-read').addEventListener('click', () => {
+  if (utterance) { stopReading(); return; }
+  recognition?.abort();
+  const language = $('voice-language').value;
+  const current = new SpeechSynthesisUtterance($('assistant-answer').textContent);
+  current.lang = /[\u3400-\u9fff]/.test(current.text) ? (language.startsWith('zh') ? language : 'zh-HK') : 'en-US';
+  const voice = window.speechSynthesis.getVoices().find(voice => voice.lang.toLowerCase() === current.lang.toLowerCase());
+  if (voice) current.voice = voice;
+  utterance = current; $('voice-read').textContent = 'Stop reading';
+  current.onend = () => { if (utterance === current) { utterance = null; $('voice-read').textContent = 'Read guidance aloud'; } };
+  current.onerror = event => { if (utterance === current) { stopReading(); $('voice-status').textContent = `Speech output: ${event.error}. Read the guidance below instead.`; } };
+  window.speechSynthesis.speak(current);
+});
+$('inspector-panel').addEventListener('close', stopVoice);
+
 const samples = {
   'kit-office': { name: 'KIT-Office.ifc', format: 'ifc', preview: 'KIT-Office-preview.png', source: 'https://www.ifcwiki.org/index.php?title=KIT_IFC_Examples', description: 'Architectural office design example from KIT: exterior walls, windows and roof geometry. Fictional design, not a verified built project. 10.9 MB.' },
   'schependomlaan': { name: 'Schependomlaan.ifc', format: 'ifc', preview: 'Schependomlaan-preview.png', source: 'https://github.com/buildingsmart-community/Community-Sample-Test-Files/tree/main/IFC%202.3.0.1%20%28IFC%202x3%29/Schependomlaan', description: 'ROOT architectural design model for the Schependomlaan residential project. Published with project and construction data. 49.3 MB; conversion can take longer.' },
@@ -167,6 +265,7 @@ function invalidateRegionDraft() {
   preparationEpoch++; draftRegion = null;
   $('region-confirmation').hidden = true;
   $('confirm-area').checked = false;
+  $('confirm-constraints').checked = false;
   $('add-region').disabled = true;
 }
 function updateRegionType() {
@@ -189,6 +288,7 @@ $('prepare-region').addEventListener('click', async () => {
     const result = await viewer.prepareRegion({ type: $('region-type').value, selection: selectedComponent, crop: { side: $('surface-crop').value, depth: Number($('crop-depth').value) }, ground: { width: Number($('ground-width').value), depth: Number($('ground-depth').value), offsetX: Number($('ground-x').value), offsetZ: Number($('ground-z').value) } });
     if (epoch !== preparationEpoch) return;
     draftRegion = result;
+    $('region-screening').textContent = [...result.screening.reasons, ...result.screening.missing].join(' ');
     $('area').value = (Math.floor(result.geometryAreaM2 * 100) / 100).toFixed(2);
     $('area').max = String(result.geometryAreaM2);
     $('region-confirmation').hidden = false;
@@ -198,13 +298,14 @@ $('prepare-region').addEventListener('click', async () => {
 });
 function refreshRegionConfirmation() {
   const area = Number($('area').value);
-  $('add-region').disabled = !draftRegion || !$('confirm-area').checked || importing || !Number.isFinite(area) || area <= 0 || area > draftRegion.geometryAreaM2 * 1.001;
+  $('add-region').disabled = !draftRegion || !$('confirm-area').checked || !$('confirm-constraints').checked || importing || !Number.isFinite(area) || area <= 0 || area > draftRegion.geometryAreaM2 * 1.001;
 }
 $('area').addEventListener('input', refreshRegionConfirmation);
 $('confirm-area').addEventListener('change', refreshRegionConfirmation);
+$('confirm-constraints').addEventListener('change', refreshRegionConfirmation);
 $('add-region').addEventListener('click', () => {
   try {
-    viewer.confirmRegion(draftRegion.id, Number($('area').value));
+    viewer.confirmRegion(draftRegion.id, Number($('area').value), $('confirm-constraints').checked);
     invalidateRegionDraft();
     selected = lastPlan;
     viewer.setPlan(PLANS.find((plan) => plan.id === selected), true);
@@ -314,6 +415,7 @@ function refreshImportControls() {
   $('show-grid').disabled = importing || !viewer;
   $('clear-selection').disabled = importing || !loadedModel;
   $('prepare-region').disabled = importing || !loadedModel || !viewer || (!selectedComponent && $('region-type').value !== 'ground');
+  $('analyse-building').disabled = $('assistant-ask').disabled = importing || !loadedModel || analysing;
   $('loading-overlay').hidden = !importing;
   $('viewer-empty').hidden = importing || Boolean(loadedModel);
   $('bim-container').setAttribute('aria-busy', String(importing));
@@ -402,6 +504,10 @@ try {
       if (percent !== null) $('zoom-percent').textContent = `${percent}%`;
     },
     onModel: (model) => {
+      assistantEpoch++; analysing = false; candidateCache.clear(); stopVoice();
+      $('voice-read').disabled = true;
+      $('assistant-candidates').replaceChildren();
+      $('assistant-answer').textContent = 'Find candidates for the current model. Nothing is added automatically.';
       loadedModel = model;
       $('project-label').textContent = model?.fileName ?? 'Start a building review';
       $('model-status-label').textContent = model ? `${model.componentCount.toLocaleString()} components` : 'Ready to import';
@@ -439,5 +545,6 @@ if (import.meta.hot) import.meta.hot.dispose(() => {
     for (const animation of ripple.getAnimations()) animation.cancel();
     ripple.remove();
   }
+  stopVoice();
   void viewer?.dispose();
 });

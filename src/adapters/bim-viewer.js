@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as OBC from '@thatopen/components';
 import * as OBF from '@thatopen/components-front';
 import workerUrl from '@thatopen/fragments/worker?url';
+import { screenRegion } from '../domain/region-screening.js';
 import { normalizeSelection } from './selection-data.js';
 import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface } from './greening-geometry.js';
 
@@ -114,7 +115,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     components.get(OBC.Raycasters).get(world);
     const highlighter = components.get(OBF.Highlighter);
     highlighter.setup({ world, selectMaterialDefinition: {
-      color: new THREE.Color('#efb653'), opacity: 1, transparent: false, renderedFaces: 0
+      color: new THREE.Color('#7a99b2'), opacity: .45, transparent: true, renderedFaces: 0
     } });
     highlighter.multiple = 'none';
 
@@ -160,12 +161,13 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         const mesh = new THREE.Mesh(geometry, material);
         mesh.userData.regionId = data.id;
         overlays.add(mesh);
-        const count = Math.min(48, surface.triangles.length);
+        const planted = extractGreeningSurface([{ positions: geometry.attributes.position.array, indices: Uint32Array.from({ length: geometry.attributes.position.count }, (_, index) => index), transform: new THREE.Matrix4() }], new THREE.Matrix4(), data.type, buildingBox.getCenter(new THREE.Vector3()));
+        const count = Math.min(48, planted.triangles.length);
         const plants = new THREE.InstancedMesh(new THREE.ConeGeometry(.16, .5, 5), new THREE.MeshStandardMaterial({ color: '#31583c', roughness: 1 }), count);
         const dummy = new THREE.Object3D();
         const up = new THREE.Vector3(0, 1, 0);
         for (let i = 0; i < count; i++) {
-          const triangle = surface.triangles[Math.floor(i * surface.triangles.length / count)];
+          const triangle = planted.triangles[Math.floor(i * planted.triangles.length / count)];
           const normal = new THREE.Vector3().fromArray(triangle.normal);
           const center = new THREE.Vector3();
           for (const point of triangle.points) center.add(new THREE.Vector3().fromArray(point));
@@ -201,22 +203,28 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         if (epoch !== regionEpoch || currentModel !== model || selectionStamp !== selectionEpoch) throw new Error('Selection changed while preparing the region');
         model.object.updateMatrixWorld(true);
         surface = extractGreeningSurface(meshes, model.object.matrixWorld, type, center);
+        const screening = screenRegion({ type, selection, surface, buildingBox });
+        if (!screening.canPrepare) throw new Error(screening.reasons.join(' '));
         surface = cropGreeningSurface(surface, crop);
         globalId = selection.globalId; localId = selection.localId; name = selection.name;
         geometrySource = 'IFC display triangles; selected use is user-defined, not engineering approval';
       }
+      const screening = screenRegion({ type, selection, surface, buildingBox });
+      if (!screening.canPrepare) throw new Error(screening.reasons.join(' '));
       const id = `${version}:region:${++regionSequence}`;
-      const data = { id, projectId: 'LOCAL-BUILDING-REVIEW', modelVersion: version, type, globalId, localId, name, geometrySource, surfaceCrop: type === 'ground' ? null : crop, geometryAreaM2: surface.surfaceAreaM2, geometryAreaProvenance: 'assumed', geometryAreaSource: 'Display mesh estimate assuming model coordinates are metres; user confirmation required', placement: placement ?? null };
+      const data = { id, projectId: 'LOCAL-BUILDING-REVIEW', modelVersion: version, type, globalId, localId, name, geometrySource, surfaceCrop: type === 'ground' ? null : crop, screening, geometryAreaM2: surface.surfaceAreaM2, geometryAreaProvenance: 'assumed', geometryAreaSource: 'Display mesh estimate assuming model coordinates are metres; user confirmation required', placement: placement ?? null };
       pendingRegion = { data, surface, selectionStamp };
       return structuredClone(data);
     }
-    function confirmRegion(id, area) {
+    function confirmRegion(id, area, constraintsConfirmed = false) {
+      if (!constraintsConfirmed) throw new Error('Confirm the exterior/available region and unresolved review requirements first');
       if (!pendingRegion || pendingRegion.data.id !== id || pendingRegion.data.modelVersion !== modelVersion || loading) throw new Error('Review the region again before confirming');
       if (pendingRegion.data.type !== 'ground' && pendingRegion.selectionStamp !== selectionEpoch) throw new Error('Selection changed; review the region again');
       const { data, surface } = pendingRegion;
       if (!Number.isFinite(area) || area <= 0 || area > surface.surfaceAreaM2 * 1.001) throw new RangeError('Confirmed usable area must be positive and within the displayed region');
       if (data.globalId && [...regions.values()].some(({ data: other }) => other.globalId === data.globalId)) throw new Error('This component is already assigned; remove its existing region to change its use');
       if (data.type === 'ground' && [...regions.values()].some(({ data: other }) => other.placement && Math.abs(other.placement.x - data.placement.x) < (other.placement.width + data.placement.width) / 2 && Math.abs(other.placement.z - data.placement.z) < (other.placement.depth + data.placement.depth) / 2)) throw new Error('Ground regions overlap; move this rectangle before adding it');
+      data.constraintAcknowledgement = 'User acknowledges outdoor/available area and unresolved professional checks; not engineering approval';
       data.usableArea = { value: area, unit: 'm2', provenance: 'user-confirmed', source: 'User-confirmed usable area for the selected presentation region; professional verification unresolved' };
       regions.set(id, { data, surface }); pendingRegion = null;
       publishRegions(); renderOverlays(); return structuredClone(data);
@@ -321,11 +329,25 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         const ids = displayIds.filter((id) => pattern.test(categoryById.get(id)));
         const [data, guids] = await Promise.all([model.getItemsData(ids), model.getGuidsByLocalIds(ids)]);
         if (model !== currentModel || version !== modelVersion) return [];
-        return ids.map((localId, index) => normalizeSelection({ localId, modelVersion: version, globalId: guids[index], category: categoryById.get(localId), data: data[index] })).sort((a, b) => a.name.localeCompare(b.name));
+        const candidates = ids.map((localId, index) => normalizeSelection({ localId, modelVersion: version, globalId: guids[index], category: categoryById.get(localId), data: data[index] }));
+        const accepted = [];
+        for (const candidate of candidates) {
+          if (model !== currentModel || version !== modelVersion) return [];
+          try {
+            const meshes = (await model.getItemsGeometry([candidate.localId]))[0];
+            model.object.updateMatrixWorld(true);
+            const surface = extractGreeningSurface(meshes, model.object.matrixWorld, type, buildingBox.getCenter(new THREE.Vector3()));
+            const screening = screenRegion({ type, selection: candidate, surface, buildingBox });
+            if (screening.canPrepare) accepted.push({ ...candidate, screening, geometryAreaM2: surface.surfaceAreaM2 });
+          } catch { /* No compatible face means no candidate for this region type. */ }
+        }
+        if (model !== currentModel || version !== modelVersion) return [];
+        return accepted.sort((a, b) => b.geometryAreaM2 - a.geometryAreaM2);
+
       },
       removeRegion(id) { regions.delete(id); publishRegions(); renderOverlays(); },
-      setPlan(plan, after = true) { activePlan = plan; showAfter = after; renderOverlays(); },
-      setBeforeAfter(after) { showAfter = after; overlays.visible = Boolean(activePlan) && after; },
+      setPlan(plan, after = true) { activePlan = plan; showAfter = after; if (after) void highlighter.clear('select'); renderOverlays(); },
+      setBeforeAfter(after) { if (after) void highlighter.clear('select'); showAfter = after; overlays.visible = Boolean(activePlan) && after; },
       getRegions() { return [...regions.values()].map(({ data }) => structuredClone(data)); },
       setRenderStyle(style) {
         renderStyle = style;

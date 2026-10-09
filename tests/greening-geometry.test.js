@@ -37,3 +37,12 @@ test('edge strips preserve triangle boundaries and reduce usable geometry area',
   assert.ok(Math.abs(meshArea(coveredSurface(cropped,.6))-12)<1e-5);
   assert.equal(surface.surfaceAreaM2,60);
 });
+
+test('coverage is one continuous strip instead of disconnected shrunken triangles',()=>{
+ const surface=groundSurface({x:0,y:0,z:0,width:10,depth:6});
+ const positions=coveredSurface(surface,.6);
+ const xs=[]; for(let i=0;i<positions.length;i+=3)xs.push(positions[i]);
+ assert.ok(xs.every(x=>x<=1.00001 && x>=-5.00001));
+ assert.ok(xs.includes(-5));
+ assert.ok(Math.abs(meshArea(positions)-36)<1e-5);
+});

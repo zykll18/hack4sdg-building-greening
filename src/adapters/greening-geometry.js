@@ -67,14 +67,24 @@ export function cropGreeningSurface(surface, { side = 'full', depth = 2 } = {}) 
   return {triangles,surfaceAreaM2:triangles.reduce((sum,triangle)=>sum+triangle.area,0)};
 }
 
-/** Shrinking each triangle preserves holes and slope, with an exact proportional mesh area. */
+/** A shared clipping plane creates one continuous planted strip, preserving openings. */
 export function coveredSurface(surface, fraction) {
   if (!Number.isFinite(fraction) || fraction < 0 || fraction > 1) throw new RangeError('Visual coverage must be between zero and one');
-  const scale = Math.sqrt(fraction);
-  const positions = [];
-  for (const { points, normal } of surface.triangles) {
-    const center = points[0].map((_, axis) => points.reduce((sum, point) => sum + point[axis], 0) / 3);
-    for (const point of points) for (let axis = 0; axis < 3; axis++) positions.push(center[axis] + (point[axis] - center[axis]) * scale + normal[axis] * .035);
+  if (fraction === 0) return new Float32Array();
+  let covered = surface;
+  if (fraction < 1) {
+    const points = surface.triangles.flatMap(triangle => triangle.points);
+    const extent = axis => points.reduce((max, p) => Math.max(max, p[axis]), -Infinity) - points.reduce((min, p) => Math.min(min, p[axis]), Infinity);
+    const axis = extent(0) >= extent(2) ? 0 : 2;
+    const side = axis === 0 ? 'left' : 'back';
+    let low = 0, high = extent(axis);
+    if (high < 1e-8) throw new Error('Surface has no horizontal planting extent');
+    for (let i = 0; i < 35; i++) {
+      const depth = (low + high) / 2;
+      covered = cropGreeningSurface(surface, { side, depth });
+      if (covered.surfaceAreaM2 < surface.surfaceAreaM2 * fraction) low = depth;
+      else high = depth;
+    }
   }
-  return new Float32Array(positions);
+  return new Float32Array(covered.triangles.flatMap(({ points, normal }) => points.flatMap(point => point.map((value, axis) => value + normal[axis] * .035))));
 }

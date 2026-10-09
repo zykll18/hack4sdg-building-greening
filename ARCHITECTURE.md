@@ -9,9 +9,11 @@ IFC / architectural sample
           ↓
 That Open display geometry + stable GlobalId + model content hash
           ↓
-Select component / choose candidate / define ground rectangle
+Inspect: geometry/identity screening + voice/text questions
           ↓
-Extract display face → optional edge strip → user confirms type and usable area
+Select conditional candidate / define ground rectangle outside building footprint
+          ↓
+Extract display face → optional edge strip → acknowledge exterior/available space and checks → confirm usable area
           ↓
 Shared region contract
           ↓
@@ -24,10 +26,11 @@ Before/after on original model + HTML report + JSON handoff
 
 ## Stack and module ownership
 
-The browser app retains plain JavaScript, Vite, Three.js and the installed That Open Components/Components Front/Fragments/WebIFC/Camera Controls packages. No backend, UI framework replacement, new runtime dependency or directory change is introduced. Local files remain in the browser; bundled samples carry source links and redistribution notices.
+The browser app retains plain JavaScript, Vite, Three.js and the installed That Open Components/Components Front/Fragments/WebIFC/Camera Controls packages. No backend, UI framework replacement, new runtime dependency or directory change is introduced. Local IFC files remain in the browser; bundled samples carry source links and redistribution notices. Voice recognition is an explicitly initiated browser API and may use the browser provider's speech service; it is separate from local IFC processing.
 
 - `src/adapters/bim-viewer.js` (A) owns initialization, IFC/Fragments import, camera, selection, candidate lookup, region preparation/confirmation, independent overlay rendering, model replacement and cleanup.
-- `src/adapters/greening-geometry.js` (A) handles world transforms, face filtering, edge-strip clipping and area-proportional visual coverage. Separating geometry from browser lifecycle permits meaningful tests against original IFC triangles.
+- `src/adapters/greening-geometry.js` (A) handles world transforms, face filtering, edge-strip clipping and continuous clipped area-proportional visual coverage. Separating geometry from browser lifecycle permits meaningful tests against original IFC triangles.
+- `src/domain/region-screening.js` (A/C integration) isolates conservative IFC identity, slope, upper-envelope and footprint screening from rendering. This pure module makes compatibility rules testable without a browser; it adds no dependency, directory or backend. Thresholds are presentation assumptions, not building-code checks.
 - `src/domain/greening-plan.js` (B/C integration) defines two presentation profiles for all four region types and aggregates the existing deterministic calculator. The original roof-shaped calculator input is an internal compatibility adapter; exported results use region identifiers. This avoids replacing working arithmetic or adding a second calculation engine.
 - `src/domain/calculate.js` (B) retains unit/provenance validation and deterministic intervention arithmetic.
 - `web/` (D) owns floating panels, region confirmation/list/removal, plan selection, before/after controls, comparison period/budget and report/JSON exports.
@@ -35,11 +38,11 @@ The browser app retains plain JavaScript, Vite, Three.js and the installed That 
 
 ## Region contract and provenance
 
-A confirmed region includes `id`, project/model version, region type, IFC GlobalId/local ID when present, display geometry source, optional edge-strip crop or ground rectangle placement, display area estimate and a separately user-confirmed `usableArea` quantity. Display geometry comes from the loaded IFC, but its area is an estimate assuming the renderer coordinate unit is metres. The proposed role and usable area require explicit confirmation. IFC category matches are candidates, not automatic roof/terrace suitability decisions. Ground regions are user-defined design rectangles and are never labelled IFC boundaries or owned land.
+A confirmed region includes `id`, project/model version, region type, IFC GlobalId/local ID when present, display geometry source, optional edge-strip crop or ground rectangle placement, display area estimate and a separately user-confirmed `usableArea` quantity. Display geometry comes from the loaded IFC, but its area is an estimate assuming the renderer coordinate unit is metres. The proposed role and usable area require explicit confirmation. IFC categories, scalar attributes and names provide initial identity screening; this does not resolve property-set relationships or establish physical exposure. Roof candidates must have upward geometry and a compatible roof identity or upper-envelope slab, with average slope at most 20°. Terrace candidates require explicit balcony/terrace identity and approximately horizontal geometry (at most 5° average slope). Generic floor cropping cannot create a terrace identity. Facade candidates need outward near-vertical wall geometry and are excluded when scalar attributes or names mark them internal. Geometry alone cannot detect all interiors, occlusion, services, structural capacity or openings not modeled as holes. Unknown exterior status stays conditional. Ground regions are user-defined design rectangles and are never labelled IFC boundaries or owned land.
 
-The viewer rejects missing/current-model selection, geometry without a suitable display face, invalid dimensions, stale drafts, duplicate component assignment and overlapping ground rectangles. Confirmed usable area must fit within the selected display surface. Roof/terrace extraction keeps upward-facing triangles; facade extraction keeps outward-facing near-vertical triangles. User-selected edge strips clip existing triangles and preserve their holes/slopes. They do not infer an approved balcony boundary.
+The viewer rejects missing/current-model selection, geometry without a suitable display face, invalid dimensions, stale drafts, duplicate component assignment and overlapping ground rectangles or rectangles intersecting the conservative building bounding footprint. Confirmed usable area must fit within the selected display surface. Roof/terrace extraction keeps upward-facing triangles; facade extraction keeps outward-facing near-vertical triangles. User-selected edge strips clip existing triangles and preserve their holes/slopes. They do not infer an approved balcony boundary.
 
-Each overlay uses confirmed area / extracted display area × system coverage fraction. Triangles shrink about their centroid by the square root of that fraction, producing the same proportional surface area as the deterministic coverage calculation. Green surfaces and small planting markers are concept visualization, not construction assemblies, species selection or a photoreal planting simulation. The original model object and source IFC bytes are never edited. Before hides overlays; After and plan changes rebuild them using the same region data. Model replacement/disposal clears drafts, selections, regions, GPU overlay geometries and materials.
+Each overlay uses confirmed area / extracted display area × system coverage fraction. A shared clipping plane moves across the longer horizontal dimension, with its depth solved against actual clipped triangle area. This creates a continuous planted strip while preserving source openings, with surface area matching deterministic coverage. Markers lie on planted triangles. The strip direction is a concept presentation choice, not an optimized layout. Green surfaces and small planting markers are concept visualization, not construction assemblies, species selection or a photoreal planting simulation. Selection uses a muted blue highlight; showing an After plan clears it to distinguish component selection from green planting. The original model object and source IFC bytes are never edited. Before hides overlays; After and plan changes rebuild them using the same region data. Model replacement/disposal clears drafts, selections, regions, GPU overlay geometries and materials.
 
 ## Calculations and report
 
@@ -54,6 +57,14 @@ The PostproductionRenderer uses shaded edges/ambient occlusion with technical/ba
 The bottom-right zoom readout uses the latest fitted view as 100%. Perspective magnification is camera zoom divided by camera-target distance; orthographic magnification uses camera zoom. Camera update events refresh only changed integer percentages, so orbit/pan preserve the reference while dolly/zoom change the readout. Loading a model, Fit, and camera presets establish a new reference after fitting completes. The indicator hides when no valid model view exists and sits above the dock on narrow screens. This is a relative navigation reference, not a physical drawing scale.
 
 Workspace buttons and the IFC upload control share a water-ripple interaction. A delegated pointer/keyboard handler covers static controls and dynamic region-removal buttons, starts the wave at the pointer or button centre, and animates only transform/opacity using the browser Web Animations API. The clipped ripple stays behind button text, inherits its colour, ignores disabled controls and respects reduced-motion preferences. Animations remove their temporary nodes on completion/cancellation; hot reload removes handlers and active waves. No dependency or framework change is needed.
+
+## Inspect location guidance and voice interaction
+
+Inspect contains component properties, location recommendations, voice/text questions and region confirmation. There is no separate Assist dock or panel. Candidates are screened from original display geometry and identity, ranked by compatible area, and show reasons plus unresolved checks; Locate selects the original component for review. Available ground land cannot be inferred. The recommendation and draft paths share the same rules, and explicit exterior/availability acknowledgement is required before adding a region. Screening and acknowledgements are exported with the region.
+
+Browser SpeechRecognition/webkitSpeechRecognition offers requested `zh-HK`, `zh-CN` and `en-US` languages when supported. Recording starts only on a user action. Users review/edit transcripts and separately ask; transcripts never automatically create regions. Unsupported browsers, permission/network/language errors preserve text input. Browser SpeechSynthesis can read the rule guidance on explicit request; voice availability depends on the installed browser voices. Closing Inspect, model replacement and hot reload stop voice activity. Cached screening is scoped to the current model and stale results are discarded.
+
+This is deterministic geometry/identity guidance with browser speech interaction. No LLM is connected and no credentials, external AI backend, automatic green-design placement or professional approval is implied. Free text selects known region topics rather than providing a general AI conversation. Current acceptance requires a real browser microphone and speech-output check; source/build tests cannot verify recognition quality or Cantonese support.
 
 ## Assets and licenses
 
