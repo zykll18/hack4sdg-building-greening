@@ -160,3 +160,10 @@ An in-app-browser pass clicks two separate KIT office roofs on the model and ver
 A follow-up browser check verifies Enter/Ask with a roof question changes the recommendation set to three roofs while preserving all five selected regions, and Review all opens the unified list. Selecting its Roof R02 entry displays that one current-location card. Final markup/control-reference checks and the production build pass. Responsive styles retain a scrollable body and fixed footer; separate narrow-screen browser acceptance remains pending.
 
 A browser follow-up found whole-document scrolling during list-to-card navigation. The fix scrolls only the Inspect body and clips root overflow. Review all → Roof R02 now leaves workspace top at 0 and header top at 22 px while the panel scrolls internally. No console warning/error was captured in the final normal-viewport pass.
+
+
+## Direct planting preview routing — 2026-10-10
+
+This supersedes the automatic Compare routing recorded above. Whole-set confirmation, preview of existing confirmed regions and custom-region preview now close Inspect and display planting on the building. The explicit Compare workspace control opens costs/carbon separately; calculation inputs and source checks are unchanged.
+
+An in-app browser verifies Use recommendations → Preview planting → synthetic whole-set acknowledgement → Confirm & preview leaves every panel closed, with After active and planting visible on the KIT office. Reopening Inspect and previewing the existing set also closes the panel without adding duplicate regions. Opening Compare explicitly still shows five confirmed regions and the same two scenario calculations. No browser warning/error was captured. The production build passes. Screenshot: `/private/tmp/greening-preview-without-comparison.png`. No deployment or merge is performed.

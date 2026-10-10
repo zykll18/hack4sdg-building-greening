@@ -331,7 +331,7 @@ $('clear-candidates').addEventListener('click', () => {
 $('add-combination').addEventListener('click', async () => {
   if ($('add-combination').disabled) return;
   const chosen = proposalRows.filter(row => row.picked);
-  if (!chosen.length) { setPreview(lastPlan); openPanel('comparison'); return; }
+  if (!chosen.length) { setPreview(lastPlan); closePanel($('inspector-panel')); return; }
   if (!$('confirm-combination').checked) { $('preview-review').hidden = false; $('chosen-locations').open = true; $('confirm-combination').focus({ preventScroll: true }); return; }
   const epoch = ++combinationEpoch;
   const requests = proposalRows.filter(row => row.picked).map(row => ({ type: row.type, localId: row.candidate.localId, globalId: row.candidate.globalId, modelVersion: row.candidate.modelVersion, area: Number(row.area.value) }));
@@ -342,8 +342,8 @@ $('add-combination').addEventListener('click', async () => {
     if (epoch !== combinationEpoch) return;
     $('confirm-combination').checked = false;
     selected = lastPlan; viewer.setPlan(PLANS.find(plan => plan.id === selected), true); render();
-    $('combination-status').textContent = ''; $('preview-review').hidden = true; openPanel('comparison');
-    showStatus('Showing combined planting. Before / After and Compare use all confirmed regions.');
+    $('combination-status').textContent = ''; $('preview-review').hidden = true; closePanel($('inspector-panel'));
+    showStatus('Showing planting on the building. Use Before / After; open Compare for costs and carbon.');
   } catch (error) { if (epoch === combinationEpoch) $('combination-status').textContent = error.message; }
   finally { if (epoch === combinationEpoch) { applyingCombination = false; refreshImportControls(); } }
 });
@@ -474,7 +474,7 @@ $('add-region').addEventListener('click', () => {
     selected = lastPlan;
     viewer.setPlan(PLANS.find((plan) => plan.id === selected), true);
     render();
-    $('region-draft-status').textContent = 'Custom region added to both plans.'; $('custom-region').open = false; openPanel('comparison');
+    $('region-draft-status').textContent = 'Custom region added to both plans.'; $('custom-region').open = false; closePanel($('inspector-panel'));
     showStatus('Showing proposed planting. Use Before / After to compare the same model.');
   } catch (error) { $('region-draft-status').textContent = error.message; }
 });
