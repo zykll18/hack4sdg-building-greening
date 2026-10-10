@@ -214,6 +214,12 @@ async function analyseLocations(question = '', { open = true } = {}) {
 }
 $('analyse-building').addEventListener('click', () => void analyseLocations());
 $('assistant-ask').addEventListener('click', () => void analyseLocations($('assistant-question').value.trim()));
+function revealInspectorSection(section) {
+  const body = document.querySelector('#inspector-panel .panel-body');
+  const bounds = body.getBoundingClientRect(), target = section.getBoundingClientRect();
+  const delta = target.top < bounds.top ? target.top - bounds.top : target.bottom > bounds.bottom ? Math.min(target.top - bounds.top, target.bottom - bounds.bottom) : 0;
+  if (delta) body.scrollTop += delta;
+}
 function renderSelectedLocations(chosen, busy) {
   $('region-count').textContent = String(chosen.length + plannedRegions.length);
   const list = $('region-list'); list.replaceChildren();
@@ -233,7 +239,7 @@ function renderSelectedLocations(chosen, busy) {
         try { await viewer.highlightRoof(row?.candidate.globalId ?? region.globalId); }
         catch (error) { showStatus(error.message); }
       } else { $('location-empty').hidden = false; $('location-empty').textContent = `Ground / courtyard · ${region.usableArea.value.toFixed(1)} m². User-defined area; available land and access require confirmation.`; }
-      document.querySelector('.inspect-location').scrollIntoView({ block: 'nearest' });
+      revealInspectorSection(document.querySelector('.inspect-location'));
     });
     remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove ${label}`); remove.disabled = busy;
     remove.addEventListener('click', () => {
@@ -344,7 +350,7 @@ $('add-combination').addEventListener('click', async () => {
 
 $('review-selected').addEventListener('click', () => {
   const list = $('chosen-locations'); list.open = !list.open;
-  if (list.open) list.scrollIntoView({ block: 'nearest' });
+  if (list.open) revealInspectorSection(list);
 });
 $('chosen-locations').addEventListener('toggle', () => $('review-selected').setAttribute('aria-expanded', String($('chosen-locations').open)));
 $('add-ground').addEventListener('click', () => {
