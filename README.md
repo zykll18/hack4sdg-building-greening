@@ -12,6 +12,8 @@ An IFC-based presentation workspace for building professionals to compare greeni
 6. In **Project**, edit the comparison period/budget or load another model. Replacement clears old regions and overlays.
 7. Download the HTML comparison report and JSON handoff. They retain current model/IFC identities, areas, systems, factors, checks and results for team integration.
 
+In **View → Plant appearance**, switch between **Textured planting** and **Simplified planting**. Bundled Fern 02 and Shrub 03 add leaf detail to Landscape roofs/courtyards and fern-filled terrace planters. Source credits and licenses are in `public/plants/README.md`; facade vegetation and trees still use simplified geometry.
+
 **Voice interaction stays in Inspect.** Expand **Voice input & questions**, choose Cantonese/Mandarin/English, start recording and review/edit the transcript. Choose **Ask about locations** to run the same screening, or type directly. Nothing is added automatically. Microphone access and language support depend on the browser; speech audio may be processed by its speech service. There is no separate Assist panel and no AI model connection yet.
 
 A/B/C/D presentation responsibilities and browser acceptance are in [TEAM_TASKS.md](TEAM_TASKS.md); implementation and provenance boundaries are in [ARCHITECTURE.md](ARCHITECTURE.md).

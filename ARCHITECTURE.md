@@ -83,3 +83,14 @@ KIT office/house designs are fictional architectural examples; Schependomlaan is
 ## Acceptance boundary
 
 A complete presentation flow requires real browser checks listed in `TEAM_TASKS.md`: region selection/confirmation, all four uses, plan/Before/After switching, period/budget changes, removal/model replacement and matching exports. Unit, geometry and build checks do not establish GPU performance, visual polish or pointer/dialog behavior. Engineering/factor validation remains disclosed in every result; a greening concept and intervention calculation do not establish whole-building net-zero status.
+
+
+## Bundled textured plants (2026-10-10)
+
+Reuse the existing Three.js GLTFLoader without adding a dependency or changing the framework. `public/plants/` is a dedicated asset directory so imagery does not become mixed with IFC building samples; its README and manifest preserve source/license/hash information. `src/adapters/planting-assets.js` owns plant decoding, prototype preparation and cache disposal; `planting-visuals.js` owns decorative placement, independently of calculation/domain modules.
+
+Fern 02 and Shrub 03 are self-contained CC0 GLBs built from official 1K assets with unchanged geometry and textures. Each has four variants normalized at runtime to a centered base and unit height while preserving proportions. They load separately with a 15-second fetch bound and a viewer-lifetime abort signal. Ready/partial/fallback states remain visible in View. Either missing asset falls back independently, and neither blocks IFC import.
+
+Landscape roofs and courtyards combine fern clusters and taller stems. Light-touch courtyard beds use ferns, and terrace ferns are scaled to the interior of their planter footprint. Extensive roof vegetation, facade planting and trees remain procedural. The shared clipped footprint still drives coverage; decorative count/appearance never changes calculation results or exported quantities. Footprint sampling checks clipped edges/holes with a bounded instance count. Lateral plant-base offsets follow the source plane, including slopes. This is approximate decorative footprint clearance, not whole-volume clash detection.
+
+Instanced plant objects share cached geometry/materials/textures. Rebuilding overlays disposes per-instance buffers and owned procedural resources, removes postproduction exclusions, and retains shared prototypes until final viewer disposal. Plant materials use the excluded-objects pass to preserve texture/color in shaded, technical and basic views. No AI-generated geometry or environmental benefit is implied by the source species or decorative count.

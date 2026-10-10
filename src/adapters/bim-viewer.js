@@ -3,13 +3,14 @@ import * as OBC from '@thatopen/components';
 import * as OBF from '@thatopen/components-front';
 import workerUrl from '@thatopen/fragments/worker?url';
 import { createPlantingVisual } from './planting-visuals.js';
+import { loadPlantVariants, disposePlantVariants } from './planting-assets.js';
 import { confirmRegionBatch } from '../domain/region-confirmation.js';
 import { screenRegion } from '../domain/region-screening.js';
 import { normalizeSelection } from './selection-data.js';
 import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface } from './greening-geometry.js';
 
 /** IFC display, confirmed greening regions, scenario overlays and frontend handoff. */
-export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {}, onZoom = () => {}, onPick = () => {} }) {
+export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {}, onZoom = () => {}, onPick = () => {}, onPlantAssetsState = () => {} }) {
   const components = new OBC.Components();
   const world = components.get(OBC.Worlds).create();
   let currentModel = null;
@@ -30,6 +31,11 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
   const overlays = new THREE.Group();
   let activePlan = null;
   let showAfter = false;
+  let disposed = false;
+  let shrubVariants = [];
+  let fernVariants = [];
+  let plantAppearance = 'model';
+  const assetAbort = new AbortController();
 
   try {
     world.scene = new OBC.SimpleScene(components);
@@ -156,16 +162,20 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     highlighter.events.select.onClear.add(() => { selectionEpoch++; onSelection(null); });
 
     function clearOverlayObjects() {
-      const geometries = new Set(), materials = new Set(), textures = new Set();
+      const geometries = new Set(), materials = new Set(), excluded = new Set(), textures = new Set();
       overlays.traverse((object) => {
-        if (object.geometry) geometries.add(object.geometry);
-        for (const material of [].concat(object.material ?? [])) materials.add(material);
+        if (object.isInstancedMesh) object.dispose();
+        if (object.geometry && !object.userData.sharedPlantAsset) geometries.add(object.geometry);
+        for (const material of [].concat(object.material ?? [])) {
+          excluded.add(material);
+          if (!object.userData.sharedPlantAsset) materials.add(material);
+        }
       });
       overlays.clear();
+      for (const material of excluded) postproduction.excludedObjectsPass.removeExcludedMaterial(material);
       for (const geometry of geometries) geometry.dispose();
       for (const material of materials) {
-        postproduction.excludedObjectsPass.removeExcludedMaterial(material);
-        if (material.map) textures.add(material.map);
+        for (const value of Object.values(material)) if (value?.isTexture) textures.add(value);
         material.dispose();
       }
       for (const texture of textures) texture.dispose();
@@ -177,7 +187,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         const profile = activePlan.profiles[data.type];
         if (!profile) continue;
         const fraction = Math.min(1, data.usableArea.value / surface.surfaceAreaM2 * profile.coverageFraction);
-        const planting = createPlantingVisual({ positions: coveredSurface(surface, fraction), type: data.type, planId: activePlan.id, seed: data.globalId ?? data.id });
+        const planting = createPlantingVisual({ positions: coveredSurface(surface, fraction), type: data.type, planId: activePlan.id, seed: data.globalId ?? data.id, shrubVariants: plantAppearance === 'model' ? shrubVariants : [], fernVariants: plantAppearance === 'model' ? fernVariants : [] });
         planting.userData.regionId = data.id;
         // Restore original planting colors after BIM pen/AO passes, including technical drawing mode.
         planting.traverse(object => { if (object.material) postproduction.excludedObjectsPass.addExcludedMaterial(object.material); });
@@ -185,6 +195,23 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       }
       overlays.visible = showAfter;
     }
+    onPlantAssetsState('loading');
+    let assetsSettled = 0;
+    const loadAsset = async (url, save) => {
+      try {
+        const variants = await loadPlantVariants(url, assetAbort.signal);
+        if (disposed) { disposePlantVariants(variants); return; }
+        save(variants);
+        renderOverlays();
+      } catch { /* Each asset independently falls back to procedural planting. */ }
+      finally {
+        if (!disposed && ++assetsSettled === 2) {
+          onPlantAssetsState(shrubVariants.length && fernVariants.length ? 'ready' : shrubVariants.length || fernVariants.length ? 'partial' : 'fallback');
+        }
+      }
+    };
+    void loadAsset('/plants/shrub-03.glb', variants => { shrubVariants = variants; });
+    void loadAsset('/plants/fern-02.glb', variants => { fernVariants = variants; });
     function publishRegions() { onRegions([...regions.values()].map(({ data }) => structuredClone(data))); }
     function resetRegions() {
       regionEpoch++; pendingRegion = null; regions.clear(); activePlan = null; showAfter = false;
@@ -394,6 +421,10 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       setPlan(plan, after = true) { activePlan = plan; showAfter = after; if (after) void highlighter.clear('select'); void applyProposalHighlights().catch(error => onStatus(error.message)); renderOverlays(); },
       setBeforeAfter(after) { if (after) void highlighter.clear('select'); showAfter = after; void applyProposalHighlights().catch(error => onStatus(error.message)); overlays.visible = Boolean(activePlan) && after; },
       getRegions() { return [...regions.values()].map(({ data }) => structuredClone(data)); },
+      setPlantAppearance(style) {
+        if (!['model', 'simple'].includes(style)) throw new Error('Choose a supported plant appearance');
+        plantAppearance = style; renderOverlays();
+      },
       setRenderStyle(style) {
         renderStyle = style;
         postproduction.enabled = !cameraMoving && style !== 'basic';
@@ -423,13 +454,16 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         finally { programmaticSelection--; }
       },
       async dispose() {
+        disposed = true; assetAbort.abort();
         controls.removeEventListener('update', updateCamera);
         selectionEpoch++;
         resetRegions();
+        disposePlantVariants([...shrubVariants, ...fernVariants]); shrubVariants = []; fernVariants = [];
         components.dispose();
       }
     };
   } catch (error) {
+    disposed = true; assetAbort.abort(); disposePlantVariants([...shrubVariants, ...fernVariants]);
     components.dispose();
     throw error;
   }

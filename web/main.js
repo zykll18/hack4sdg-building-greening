@@ -506,6 +506,7 @@ function refreshImportControls() {
   $('view-iso').disabled = importing || !loadedModel;
   $('view-top').disabled = importing || !loadedModel;
   $('render-style').disabled = importing || !viewer;
+  $('plant-appearance').disabled = importing || !viewer;
   $('show-grid').disabled = importing || !viewer;
   $('clear-selection').disabled = importing || !loadedModel;
   $('prepare-region').disabled = importing || applyingCombination || !loadedModel || !viewer || (!selectedComponent && $('region-type').value !== 'ground');
@@ -579,6 +580,7 @@ $('render-style').addEventListener('change', (event) => {
   try { viewer?.setRenderStyle(event.target.value); }
   catch (error) { showStatus(`Could not change rendering: ${error.message}`); }
 });
+$('plant-appearance').addEventListener('change', event => viewer?.setPlantAppearance(event.target.value));
 $('show-grid').addEventListener('change', (event) => viewer?.setGrid(event.target.checked));
 for (const [id, method] of [['fit-model', 'fit'], ['clear-selection', 'clearSelection']]) {
   $(id).addEventListener('click', async () => {
@@ -592,6 +594,9 @@ refreshImportControls();
 try {
   const { createBimViewer } = await import('../src/adapters/bim-viewer.js');
   viewer = await createBimViewer($('bim-container'), {
+    onPlantAssetsState: state => {
+      $('plant-asset-status').textContent = ({ ready: 'Fern 02 + Shrub 03 · Poly Haven · CC0. Ready.', loading: 'Loading plant models…', partial: 'One plant model is unavailable. Available models and simplified planting remain usable.', fallback: 'Plant models unavailable. Showing simplified planting.' })[state];
+    },
     onSelection: showSelection,
     onPick: toggleModelLocation,
     onRegions: showRegions,
