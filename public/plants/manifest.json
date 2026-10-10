@@ -1,0 +1,95 @@
+{
+  "assets": [
+    {
+      "asset": "Shrub 03",
+      "author": "Rico Cilliers",
+      "source": "https://polyhaven.com/a/shrub_03",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "retrievedAt": "2026-10-09",
+      "file": "shrub-03.glb",
+      "bytes": 1625884,
+      "sha256": "d827c3d2fd31132908662e3a12c7442aaaae71af594fcdacdf734147911ad517",
+      "transformation": "Pack official 1K glTF, geometry and unchanged JPEG textures into self-contained GLB; no geometry or texture modification. Four individual variants are centered and uniformly scaled at runtime.",
+      "sources": [
+        {
+          "name": "shrub_03_1k.gltf",
+          "bytes": 7296,
+          "sha256": "b76d7c14bc027e834e82d3f984c32b5d060e62908aa90ff9420a637ca253a8ea",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/shrub_03/shrub_03_1k.gltf"
+        },
+        {
+          "name": "shrub_03.bin",
+          "bytes": 238684,
+          "sha256": "bf4df21e6d2a2bc5f00b4c9142f776171fe7da00cf960001825748067af542b6",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/shrub_03/shrub_03.bin"
+        },
+        {
+          "name": "textures/shrub_03_arm_1k.jpg",
+          "bytes": 396238,
+          "sha256": "3e2b16812a623037138eedace958210c5f3443a827bbe69663045bba5612f815",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_03/shrub_03_arm_1k.jpg"
+        },
+        {
+          "name": "textures/shrub_03_diff_1k.jpg",
+          "bytes": 481841,
+          "sha256": "3cadc7aba46d3aabbd7d6d2b1d04aa32e2a7da0bc87c2d38ef3cb1ee42cb03ec",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_03/shrub_03_diff_1k.jpg"
+        },
+        {
+          "name": "textures/shrub_03_nor_gl_1k.jpg",
+          "bytes": 504734,
+          "sha256": "ff856bacfce859b8a7555dd9a3b92fbd36b2e775d486be71df485afb4235d6c9",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_03/shrub_03_nor_gl_1k.jpg"
+        }
+      ]
+    },
+    {
+      "asset": "Fern 02",
+      "authors": [
+        "Rico Cilliers (modeling)",
+        "Rob Tuytel (scanning)"
+      ],
+      "source": "https://polyhaven.com/a/fern_02",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "retrievedAt": "2026-10-10",
+      "file": "fern-02.glb",
+      "bytes": 1143580,
+      "sha256": "7e4a4ff2f8b53f946968d824d5bc799ccbcc1bf30c766a8513e9e1d38486ce73",
+      "transformation": "Pack official 1K glTF, binary geometry and unchanged JPEG textures into self-contained GLB. Variants are centered and uniformly scaled at runtime.",
+      "sources": [
+        {
+          "name": "fern_02_1k.gltf",
+          "bytes": 6899,
+          "sha256": "33974295ee19670af4877705fc7d91f33f42d6302f0d44a625e072271223031f",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fern_02/fern_02_1k.gltf"
+        },
+        {
+          "name": "textures/fern_02_arm_1k.jpg",
+          "bytes": 280359,
+          "sha256": "ebfb5d76ce9cbdaec20bcd22dce9b755f0b1b8650ef29ca13555e3e6961025d7",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_arm_1k.jpg"
+        },
+        {
+          "name": "textures/fern_02_diff_1k.jpg",
+          "bytes": 315705,
+          "sha256": "a828a6e7b4c01c826911e2eac4b3afc7457dab7b3b392a31c681ed88b7d50029",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_diff_1k.jpg"
+        },
+        {
+          "name": "textures/fern_02_nor_gl_1k.jpg",
+          "bytes": 367222,
+          "sha256": "45bce132c6e96a0864bc89ab5da51361ab3f4afa83a6669ae499ab5ca811f621",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fern_02/fern_02_nor_gl_1k.jpg"
+        },
+        {
+          "name": "fern_02.bin",
+          "bytes": 176176,
+          "sha256": "fe1abb762bcbbc7ad9e86925c8080437a62add257d9280e9142fdc85c226e64c",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/fern_02/fern_02.bin"
+        }
+      ]
+    }
+  ]
+}

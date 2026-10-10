@@ -3,13 +3,14 @@ import * as OBC from '@thatopen/components';
 import * as OBF from '@thatopen/components-front';
 import workerUrl from '@thatopen/fragments/worker?url';
 import { createPlantingVisual } from './planting-visuals.js';
+import { loadPlantVariants, disposePlantVariants } from './planting-assets.js';
 import { confirmRegionBatch } from '../domain/region-confirmation.js';
 import { screenRegion } from '../domain/region-screening.js';
 import { normalizeSelection } from './selection-data.js';
-import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface } from './greening-geometry.js';
+import { extractGreeningSurface, groundSurface, coveredSurface, cropGreeningSurface, offsetSurfacePositions } from './greening-geometry.js';
 
 /** IFC display, confirmed greening regions, scenario overlays and frontend handoff. */
-export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {}, onZoom = () => {}, onPick = () => {} }) {
+export async function createBimViewer(container, { onSelection, onStatus, onModel, onRegions = () => {}, onZoom = () => {}, onPick = () => {}, onPlantAssetsState = () => {} }) {
   const components = new OBC.Components();
   const world = components.get(OBC.Worlds).create();
   let currentModel = null;
@@ -28,8 +29,15 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
   let regionEpoch = 0;
   const regions = new Map();
   const overlays = new THREE.Group();
+  const candidateSurfaces = new Map();
+  const surfaceHighlights = new THREE.Group();
   let activePlan = null;
   let showAfter = false;
+  let disposed = false;
+  let shrubVariants = [];
+  let fernVariants = [];
+  let plantAppearance = 'model';
+  const assetAbort = new AbortController();
 
   try {
     world.scene = new OBC.SimpleScene(components);
@@ -38,7 +46,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       ambientLight: { color: new THREE.Color('#ffffff'), intensity: 1.1 },
       directionalLight: { color: new THREE.Color('#ffffff'), intensity: 1.8, position: new THREE.Vector3(40, 60, 25) }
     });
-    world.scene.three.add(overlays);
+    world.scene.three.add(overlays, surfaceHighlights);
     world.renderer = new OBF.PostproductionRenderer(components, container);
     world.renderer.three.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     world.camera = new OBC.OrthoPerspectiveCamera(components);
@@ -155,17 +163,37 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
     });
     highlighter.events.select.onClear.add(() => { selectionEpoch++; onSelection(null); });
 
+    function clearSurfaceHighlights() {
+      for (const mesh of [...surfaceHighlights.children]) {
+        postproduction.excludedObjectsPass.removeExcludedMaterial(mesh.material);
+        mesh.geometry.dispose(); mesh.material.dispose();
+      }
+      surfaceHighlights.clear();
+    }
+    function addSurfaceHighlight(surface, style) {
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(offsetSurfacePositions(coveredSurface(surface, 1), .05), 3));
+      geometry.computeVertexNormals();
+      const material = new THREE.MeshBasicMaterial({ color: style === 'picked' ? '#24b38c' : '#72b4dd', transparent: true, opacity: style === 'picked' ? .82 : .70, side: THREE.DoubleSide, depthWrite: false });
+      const mesh = new THREE.Mesh(geometry, material); mesh.name = `${style} screened planting surface`;
+      postproduction.excludedObjectsPass.addExcludedMaterial(material);
+      surfaceHighlights.add(mesh);
+    }
     function clearOverlayObjects() {
-      const geometries = new Set(), materials = new Set(), textures = new Set();
+      const geometries = new Set(), materials = new Set(), excluded = new Set(), textures = new Set();
       overlays.traverse((object) => {
-        if (object.geometry) geometries.add(object.geometry);
-        for (const material of [].concat(object.material ?? [])) materials.add(material);
+        if (object.isInstancedMesh) object.dispose();
+        if (object.geometry && !object.userData.sharedPlantAsset) geometries.add(object.geometry);
+        for (const material of [].concat(object.material ?? [])) {
+          excluded.add(material);
+          if (!object.userData.sharedPlantAsset) materials.add(material);
+        }
       });
       overlays.clear();
+      for (const material of excluded) postproduction.excludedObjectsPass.removeExcludedMaterial(material);
       for (const geometry of geometries) geometry.dispose();
       for (const material of materials) {
-        postproduction.excludedObjectsPass.removeExcludedMaterial(material);
-        if (material.map) textures.add(material.map);
+        for (const value of Object.values(material)) if (value?.isTexture) textures.add(value);
         material.dispose();
       }
       for (const texture of textures) texture.dispose();
@@ -177,7 +205,7 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         const profile = activePlan.profiles[data.type];
         if (!profile) continue;
         const fraction = Math.min(1, data.usableArea.value / surface.surfaceAreaM2 * profile.coverageFraction);
-        const planting = createPlantingVisual({ positions: coveredSurface(surface, fraction), type: data.type, planId: activePlan.id, seed: data.globalId ?? data.id });
+        const planting = createPlantingVisual({ positions: coveredSurface(surface, fraction), type: data.type, planId: activePlan.id, seed: data.globalId ?? data.id, shrubVariants: plantAppearance === 'model' ? shrubVariants : [], fernVariants: plantAppearance === 'model' ? fernVariants : [] });
         planting.userData.regionId = data.id;
         // Restore original planting colors after BIM pen/AO passes, including technical drawing mode.
         planting.traverse(object => { if (object.material) postproduction.excludedObjectsPass.addExcludedMaterial(object.material); });
@@ -185,10 +213,27 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       }
       overlays.visible = showAfter;
     }
+    onPlantAssetsState('loading');
+    let assetsSettled = 0;
+    const loadAsset = async (url, save) => {
+      try {
+        const variants = await loadPlantVariants(url, assetAbort.signal);
+        if (disposed) { disposePlantVariants(variants); return; }
+        save(variants);
+        renderOverlays();
+      } catch { /* Each asset independently falls back to procedural planting. */ }
+      finally {
+        if (!disposed && ++assetsSettled === 2) {
+          onPlantAssetsState(shrubVariants.length && fernVariants.length ? 'ready' : shrubVariants.length || fernVariants.length ? 'partial' : 'fallback');
+        }
+      }
+    };
+    void loadAsset('/plants/shrub-03.glb', variants => { shrubVariants = variants; });
+    void loadAsset('/plants/fern-02.glb', variants => { fernVariants = variants; });
     function publishRegions() { onRegions([...regions.values()].map(({ data }) => structuredClone(data))); }
     function resetRegions() {
       regionEpoch++; pendingRegion = null; regions.clear(); activePlan = null; showAfter = false;
-      clearOverlayObjects(); publishRegions();
+      clearOverlayObjects(); clearSurfaceHighlights(); candidateSurfaces.clear(); publishRegions();
     }
     async function buildRegion({ type, selection, ground, crop }, context) {
       if (!currentModel || loading) throw new Error('Load a model before planning a region');
@@ -350,10 +395,16 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
       proposalQueue = proposalQueue.catch(() => {}).then(async () => {
         if (!model || loading || currentModel !== model || state?.version !== modelVersion) return;
         const visible = new Set(displayIds);
+        clearSurfaceHighlights(); surfaceHighlights.visible = !showAfter;
         for (const style of ['recommended', 'picked']) {
           if (currentModel !== model || loading) return;
           const valid = showAfter ? [] : state[style].filter(id => visible.has(id));
-          if (valid.length) await highlighter.highlightByID(style, { [model.modelId]: new Set(valid) }, true, false);
+          for (const id of valid) {
+            const surface = candidateSurfaces.get(`${state.types?.[id] ?? 'roof'}:${id}`);
+            if (surface) addSurfaceHighlight(surface, style);
+          }
+          const componentIds = valid.filter(id => !candidateSurfaces.has(`${state.types?.[id] ?? 'roof'}:${id}`));
+          if (componentIds.length) await highlighter.highlightByID(style, { [model.modelId]: new Set(componentIds) }, true, false);
           else await highlighter.clear(style);
         }
       });
@@ -383,7 +434,10 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
             model.object.updateMatrixWorld(true);
             const surface = extractGreeningSurface(meshes, model.object.matrixWorld, type, buildingBox.getCenter(new THREE.Vector3()));
             const screening = screenRegion({ type, selection: candidate, surface, buildingBox });
-            if (screening.canPrepare) accepted.push({ ...candidate, screening, geometryAreaM2: surface.surfaceAreaM2 });
+            if (screening.canPrepare) {
+              candidateSurfaces.set(`${type}:${candidate.localId}`, surface);
+              accepted.push({ ...candidate, screening, geometryAreaM2: surface.surfaceAreaM2 });
+            }
           } catch { /* No compatible face means no candidate for this region type. */ }
         }
         if (model !== currentModel || version !== modelVersion) return [];
@@ -391,9 +445,13 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
 
       },
       removeRegion(id) { regionEpoch++; pendingRegion = null; regions.delete(id); publishRegions(); renderOverlays(); },
-      setPlan(plan, after = true) { activePlan = plan; showAfter = after; if (after) void highlighter.clear('select'); void applyProposalHighlights().catch(error => onStatus(error.message)); renderOverlays(); },
-      setBeforeAfter(after) { if (after) void highlighter.clear('select'); showAfter = after; void applyProposalHighlights().catch(error => onStatus(error.message)); overlays.visible = Boolean(activePlan) && after; },
+      setPlan(plan, after = true) { surfaceHighlights.visible = !after; activePlan = plan; showAfter = after; if (after) void highlighter.clear('select'); void applyProposalHighlights().catch(error => onStatus(error.message)); renderOverlays(); },
+      setBeforeAfter(after) { surfaceHighlights.visible = !after; if (after) void highlighter.clear('select'); showAfter = after; void applyProposalHighlights().catch(error => onStatus(error.message)); overlays.visible = Boolean(activePlan) && after; },
       getRegions() { return [...regions.values()].map(({ data }) => structuredClone(data)); },
+      setPlantAppearance(style) {
+        if (!['model', 'simple'].includes(style)) throw new Error('Choose a supported plant appearance');
+        plantAppearance = style; renderOverlays();
+      },
       setRenderStyle(style) {
         renderStyle = style;
         postproduction.enabled = !cameraMoving && style !== 'basic';
@@ -410,8 +468,8 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         resetZoomReference();
       },
       async clearSelection() { await highlighter.clear('select'); },
-      setProposalHighlights({ recommended = [], picked = [], version }) {
-        proposalState = { recommended, picked, version };
+      setProposalHighlights({ recommended = [], picked = [], types = {}, version }) {
+        proposalState = { recommended, picked, types, version };
         return applyProposalHighlights();
       },
       async highlightRoof(globalId) {
@@ -423,13 +481,16 @@ export async function createBimViewer(container, { onSelection, onStatus, onMode
         finally { programmaticSelection--; }
       },
       async dispose() {
+        disposed = true; assetAbort.abort();
         controls.removeEventListener('update', updateCamera);
         selectionEpoch++;
         resetRegions();
+        disposePlantVariants([...shrubVariants, ...fernVariants]); shrubVariants = []; fernVariants = [];
         components.dispose();
       }
     };
   } catch (error) {
+    disposed = true; assetAbort.abort(); disposePlantVariants([...shrubVariants, ...fernVariants]);
     components.dispose();
     throw error;
   }
