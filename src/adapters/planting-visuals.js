@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { offsetSurfacePositions } from './greening-geometry.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 function random(seed) {
@@ -100,7 +101,7 @@ function instanced(group, geometry, material, entries, name) {
   mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   mesh.computeBoundingSphere(); mesh.computeBoundingBox(); group.add(mesh);
 }
-function layer(group, positions, surface, type, dense) {
+function layer(group, positions, surface, type, dense, coverageM2) {
   const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); geometry.computeVertexNormals();
   const uvs = [];
   for (const triangle of surface.triangles) {
@@ -110,7 +111,7 @@ function layer(group, positions, surface, type, dense) {
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   const openSupport = type === 'facade' && !dense || type === 'terrace';
   const material = new THREE.MeshStandardMaterial({ color: openSupport ? '#6f8275' : '#ffffff', map: openSupport ? null : groundTexture(), roughness: .98, side: THREE.DoubleSide, transparent: openSupport, opacity: openSupport ? .12 : 1, depthWrite: !openSupport });
-  const mesh = new THREE.Mesh(geometry, material); mesh.name = 'Calculated planting footprint'; mesh.userData.coverageM2 = surface.surfaceAreaM2; group.add(mesh);
+  const mesh = new THREE.Mesh(geometry, material); mesh.name = 'Calculated planting footprint'; mesh.userData.coverageM2 = coverageM2; group.add(mesh);
   if (openSupport) return;
   // Only the perimeter receives a bed edge; internal triangle diagonals stay invisible.
   const edges = new Map(), sides = [], depth = type === 'facade' ? .075 : dense ? .18 : .075;
@@ -130,12 +131,14 @@ function layer(group, positions, surface, type, dense) {
 export function createPlantingVisual({ positions, type, planId, seed = 'region', shrubVariants = [], fernVariants = [] }) {
   const group = new THREE.Group(); group.name = 'Concept planting system';
   const dense = planId === 'landscape';
-  // A parallel vertical lift gives horizontal beds visible depth without changing their area.
-  if (type === 'roof' || type === 'ground') { positions = new Float32Array(positions); for (let i = 1; i < positions.length; i += 3) positions[i] += dense ? .18 : .075; }
+  const analyticalSurface = surfaceTriangles(positions);
+  group.userData.coverageM2 = analyticalSurface.surfaceAreaM2; group.userData.type = type;
+  if (!analyticalSurface.triangles.length) return group;
+  const offset = .035 + (type === 'roof' || type === 'ground' ? dense ? .18 : .075 : 0);
+  positions = offsetSurfacePositions(positions, offset);
   const surface = surfaceTriangles(positions);
-  group.userData.coverageM2 = surface.surfaceAreaM2; group.userData.type = type;
-  if (!surface.triangles.length) return group;
-  layer(group, positions, surface, type, dense);
+  group.userData.surfaceOffsetM = offset;
+  layer(group, positions, surface, type, dense, analyticalSurface.surfaceAreaM2);
   const leaves = [], stems = [], crowns = [], boxes = [], rails = [], blooms = [], rng = random(seed + ':foliage');
   const assetBatches = [
     { name: 'Textured shrub', variants: shrubVariants, entries: shrubVariants.map(() => []) },

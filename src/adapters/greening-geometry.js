@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { screenSurfaceBySlope } from '../domain/region-screening.js';
 
 /** Geometry estimate only: region use and structural suitability require user confirmation. */
 export function extractGreeningSurface(meshes, modelMatrix, type, buildingCenter) {
@@ -20,12 +21,15 @@ export function extractGreeningSurface(meshes, modelMatrix, type, buildingCenter
       if (type === 'facade') {
         outward.subVectors(center, buildingCenter); outward.y = 0; outward.normalize();
         if (Math.abs(normal.y) > .25 || normal.dot(outward) < .25) continue;
-      } else if (normal.y < .35) continue;
+      } else if (normal.y <= 1e-6) continue;
       triangles.push({ points: [a.toArray(), b.toArray(), c.toArray()], normal: normal.toArray(), area });
     }
   }
   if (!triangles.length) throw new Error('No suitable display face found. Select another component or choose a different region type.');
-  return { triangles, surfaceAreaM2: triangles.reduce((sum, triangle) => sum + triangle.area, 0) };
+  const source = { triangles, surfaceAreaM2: triangles.reduce((sum, triangle) => sum + triangle.area, 0) };
+  const screened = screenSurfaceBySlope(source, type);
+  if (!screened.triangles.length) throw new Error(`No suitable ${type} faces meet the local slope concept limit. Specialist review required.`);
+  return screened;
 }
 
 export function groundSurface({ x, y, z, width, depth }) {
@@ -64,7 +68,7 @@ export function cropGreeningSurface(surface, { side = 'full', depth = 2 } = {}) 
     }
   }
   if (!triangles.length) throw new Error('This crop contains no display surface');
-  return {triangles,surfaceAreaM2:triangles.reduce((sum,triangle)=>sum+triangle.area,0)};
+  return {...surface,triangles,surfaceAreaM2:triangles.reduce((sum,triangle)=>sum+triangle.area,0)};
 }
 
 /** A shared clipping plane creates one continuous planted strip, preserving openings. */
@@ -86,5 +90,27 @@ export function coveredSurface(surface, fraction) {
       else high = depth;
     }
   }
-  return new Float32Array(covered.triangles.flatMap(({ points, normal }) => points.flatMap(point => point.map((value, axis) => value + normal[axis] * .035))));
+  return new Float32Array(covered.triangles.flatMap(({ points }) => points.flat()));
+}
+
+
+/** Shared vertices receive one area-weighted normal offset, avoiding cracks along curved seams. */
+export function offsetSurfacePositions(positions, distance) {
+  if (!Number.isFinite(distance) || distance < 0 || positions.length % 9 !== 0) throw new RangeError('A valid surface and non-negative offset are required');
+  const normals = new Map(), key = point => point.map(value => Math.round(value * 1e5)).join(',');
+  for (let i = 0; i < positions.length; i += 9) {
+    const a = new THREE.Vector3().fromArray(positions, i), b = new THREE.Vector3().fromArray(positions, i + 3), c = new THREE.Vector3().fromArray(positions, i + 6);
+    const normal = b.clone().sub(a).cross(c.clone().sub(a));
+    for (const point of [a,b,c]) {
+      const id = key(point.toArray());
+      if (!normals.has(id)) normals.set(id, new THREE.Vector3());
+      normals.get(id).add(normal);
+    }
+  }
+  const result = new Float32Array(positions.length);
+  for (let i = 0; i < positions.length; i += 3) {
+    const point = new THREE.Vector3().fromArray(positions, i);
+    point.addScaledVector(normals.get(key(point.toArray())).clone().normalize(), distance).toArray(result, i);
+  }
+  return result;
 }

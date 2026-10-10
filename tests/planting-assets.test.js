@@ -67,7 +67,7 @@ test('textured roof and courtyard shrubs reuse prototypes, remain within footpri
       for (let i = 0; i < mesh.count; i++) {
         const matrix = new THREE.Matrix4(), p = new THREE.Vector3(), scale = new THREE.Vector3(); mesh.getMatrixAt(i, matrix); matrix.decompose(p, new THREE.Quaternion(), scale);
         assert.ok(matrix.elements.every(Number.isFinite)); assert.ok(scale.y >= .549 && scale.y <= .801);
-        p.y -= .18; assert.ok(footprintFits(surface, p.toArray(), [0,1,0], variants[0].radius * scale.y));
+        p.y -= .215; assert.ok(footprintFits(surface, p.toArray(), [0,1,0], variants[0].radius * scale.y));
       }
     }
     const textures = new Set();
@@ -131,7 +131,7 @@ test('real mixed assets stay bounded on sloped roofs and planters, keep quantiti
       const variant=prototypes.find(v=>v.geometry===mesh.geometry);assert.ok(variant);
       for(let i=0;i<mesh.count;i++) {
         const matrix=new THREE.Matrix4(),p=new THREE.Vector3(),scale=new THREE.Vector3();mesh.getMatrixAt(i,matrix);matrix.decompose(p,new THREE.Quaternion(),scale);
-        assert.ok(matrix.elements.every(Number.isFinite));p.y-=.18;
+        assert.ok(matrix.elements.every(Number.isFinite));p.addScaledVector(new THREE.Vector3().fromArray(normal),-.215);
         assert.ok(footprintFits(surface,p.toArray(),normal,variant.radius*scale.y));
         assert.ok(Math.abs(new THREE.Vector3().fromArray(normal).dot(p))<.00001,'plant base stays on the sloped plane');
       }

@@ -165,7 +165,7 @@ async function analyseLocations(question = '', { open = true } = {}) {
         const choice = document.createElement('div'); choice.className = 'candidate-choice';
         const name = document.createElement('strong'); name.textContent = `${candidate.name} · ${candidate.globalId.slice(-6)}`;
         choice.append(name);
-        const estimate = document.createElement('p'); estimate.className = 'note'; estimate.textContent = `${candidate.geometryAreaM2.toFixed(1)} m² compatible display estimate · conditional`;
+        const estimate = document.createElement('p'); estimate.className = 'note'; estimate.textContent = `${candidate.geometryAreaM2.toFixed(1)} m² screened display estimate · conditional${candidate.screening.slopeScreening ? ` · ${candidate.screening.slopeScreening.excludedAreaM2.toFixed(1)} m² excluded by local slope` : ''}`;
         const details = document.createElement('details'), summary = document.createElement('summary'), reason = document.createElement('p');
         summary.textContent = 'Why this candidate / missing checks'; reason.className = 'note';
         reason.textContent = [...candidate.screening.reasons, ...candidate.screening.missing].join(' '); details.append(summary, reason);
@@ -199,7 +199,7 @@ async function analyseLocations(question = '', { open = true } = {}) {
     }
     const chinese = /[\u3400-\u9fff]/.test(question) || (!question && $('voice-language').value.startsWith('zh'));
     const summary = Object.entries(counts).map(([type, count]) => `${chinese ? {roof:'屋顶',facade:'立面',terrace:'露台',ground:'庭院'}[type] : REGION_TYPES[type]}: ${count}`).join(' · ');
-    $('assistant-answer').textContent = chinese ? `初筛：${summary}。蓝色是推荐起点，绿色是已选位置。关闭面板，直接点击建筑加入或取消；点击别处保留之前的选择。Inspect 只列出你选中的位置，核查可用面积和工程条件后统一加入两套方案。立面需确认外墙，普通楼板不当作露台，庭院需单独确认用地。当前使用规则筛选，尚未接入 AI。` : `Conditional candidates: ${summary}. Blue marks a suggested starting set; green marks your selections. Close Inspect and click the building to add or remove locations. Earlier choices remain selected. Review usable areas and missing engineering checks here before adding the set to both plans. Exterior walls and land availability require confirmation. Rule-based screening; AI is not connected.`;
+    $('assistant-answer').textContent = chinese ? `初筛：${summary}。蓝色是推荐起点，绿色是已选位置；屋顶仅高亮通过局部坡度筛选的曲面。关闭面板，直接点击建筑加入或取消；点击别处保留之前的选择。Inspect 只列出你选中的位置，核查可用面积和工程条件后统一加入两套方案。立面需确认外墙，普通楼板不当作露台，庭院需单独确认用地。当前使用规则筛选，尚未接入 AI。` : `Conditional candidates: ${summary}. Blue marks a suggested starting set; green marks your selections. Roof highlights show only faces passing local slope screening. Close Inspect and click the building to add or remove locations. Earlier choices remain selected. Review usable areas and missing engineering checks here before adding the set to both plans. Exterior walls and land availability require confirmation. Rule-based screening; AI is not connected.`;
 
   } catch (error) { if (epoch === assistantEpoch) { proposalRows = previousRows; $('assistant-candidates').replaceChildren(...previousSections); $('assistant-answer').textContent = `Location screening failed: ${error.message}. Earlier selections are preserved. Try finding locations again.`; } }
   finally { if (epoch === assistantEpoch) { analysing = false; $('combination-controls').hidden = !proposalRows.length; refreshImportControls(); } }
@@ -234,7 +234,7 @@ function updateCombinationControls() {
   $('proposal-legend').hidden = recommendationVersion !== loadedModel?.modelVersion || !proposalRows.length || selected !== null;
   const recommended = proposalRows.filter(row => recommendedGuids.get(row.candidate.globalId) === row.type && !plannedRegions.some(region => region.globalId === row.candidate.globalId));
   $('proposal-count').textContent = `${chosen.length} selected · ${new Set(recommended.map(row => row.candidate.globalId)).size} recommended`;
-  const ids = { recommended: [...new Set(recommended.map(row => row.candidate.localId))], picked: chosen.map(row => row.candidate.localId), version: loadedModel?.modelVersion };
+  const ids = { recommended: [...new Set(recommended.map(row => row.candidate.localId))], picked: chosen.map(row => row.candidate.localId), types: Object.fromEntries([...recommended, ...chosen].map(row => [row.candidate.localId, row.type])), version: loadedModel?.modelVersion };
   const key = JSON.stringify(ids);
   if (viewer && key !== lastHighlightKey) { lastHighlightKey = key; void viewer.setProposalHighlights(ids).catch(error => { lastHighlightKey = null; showStatus(`Could not highlight locations: ${error.message}`); }); }
 
