@@ -1,0 +1,43 @@
+{
+  "version": "2026-10-11",
+  "author": "Building Greening project",
+  "method": "Authored procedural geometry",
+  "accuracy": "Concept appearance and proportions; not measured mature specimens",
+  "models": {
+    "sedum-lineare": {
+      "src": "/plants/species/sedum-lineare.glb",
+      "sha256": "6afd901a9367b13984fe92bd81cc089bd183f3c5c275a65a4913f232a4a3f5bd",
+      "bytes": 87912
+    },
+    "arachis-pintoi": {
+      "src": "/plants/species/arachis-pintoi.glb",
+      "sha256": "3e9a0fdf20b3507e78b18ab83a18ad59d1217c6a1c23da83b90081e240e83679",
+      "bytes": 75748
+    },
+    "ophiopogon-japonicus": {
+      "src": "/plants/species/ophiopogon-japonicus.glb",
+      "sha256": "83da4fbeac34da3a5fdc957157286083aecf43b746bc960604612062adbd3542",
+      "bytes": 29464
+    },
+    "ficus-pumila": {
+      "src": "/plants/species/ficus-pumila.glb",
+      "sha256": "e67b7771234d1d750fd852de0beec566f936bc8eafd6e9d86503fab03cde7f81",
+      "bytes": 50524
+    },
+    "trachelospermum-jasminoides": {
+      "src": "/plants/species/trachelospermum-jasminoides.glb",
+      "sha256": "79f81de762cb28a906fb9849ae9f232b159122494bf542f3da78f38615f5b2f0",
+      "bytes": 66936
+    },
+    "parthenocissus-dalzielii": {
+      "src": "/plants/species/parthenocissus-dalzielii.glb",
+      "sha256": "332049764779995e92ea8c862449e6c50d0c9eaeb07bb21a12ba1c7db0585bed",
+      "bytes": 54004
+    },
+    "bougainvillea-spectabilis": {
+      "src": "/plants/species/bougainvillea-spectabilis.glb",
+      "sha256": "56ed3d914502398dd8c77a5f7fa39d0d7999f57f7274d4f3f2a002988d9f7bb5",
+      "bytes": 63496
+    }
+  }
+}

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { screenSurfaceBySlope } from '../domain/region-screening.js';
 
 /** Geometry estimate only: region use and structural suitability require user confirmation. */
-export function extractGreeningSurface(meshes, modelMatrix, type, buildingCenter) {
+export function extractGreeningSurface(meshes, modelMatrix, type, buildingCenter, {sourceOnly=false}={}) {
   const triangles = [];
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
   const ab = new THREE.Vector3(), ac = new THREE.Vector3(), normal = new THREE.Vector3();
@@ -20,12 +21,16 @@ export function extractGreeningSurface(meshes, modelMatrix, type, buildingCenter
       if (type === 'facade') {
         outward.subVectors(center, buildingCenter); outward.y = 0; outward.normalize();
         if (Math.abs(normal.y) > .25 || normal.dot(outward) < .25) continue;
-      } else if (normal.y < .35) continue;
+      } else if (normal.y <= 1e-6) continue;
       triangles.push({ points: [a.toArray(), b.toArray(), c.toArray()], normal: normal.toArray(), area });
     }
   }
   if (!triangles.length) throw new Error('No suitable display face found. Select another component or choose a different region type.');
-  return { triangles, surfaceAreaM2: triangles.reduce((sum, triangle) => sum + triangle.area, 0) };
+  const source = { triangles, surfaceAreaM2: triangles.reduce((sum, triangle) => sum + triangle.area, 0) };
+  if(sourceOnly)return source;
+  const screened = screenSurfaceBySlope(source, type);
+  if (!screened.triangles.length) throw new Error(`No suitable ${type} faces meet the local slope concept limit. Specialist review required.`);
+  return screened;
 }
 
 export function groundSurface({ x, y, z, width, depth }) {
@@ -64,7 +69,7 @@ export function cropGreeningSurface(surface, { side = 'full', depth = 2 } = {}) 
     }
   }
   if (!triangles.length) throw new Error('This crop contains no display surface');
-  return {triangles,surfaceAreaM2:triangles.reduce((sum,triangle)=>sum+triangle.area,0)};
+  return {...surface,triangles,surfaceAreaM2:triangles.reduce((sum,triangle)=>sum+triangle.area,0)};
 }
 
 /** A shared clipping plane creates one continuous planted strip, preserving openings. */
@@ -86,5 +91,52 @@ export function coveredSurface(surface, fraction) {
       else high = depth;
     }
   }
-  return new Float32Array(covered.triangles.flatMap(({ points, normal }) => points.flatMap(point => point.map((value, axis) => value + normal[axis] * .035))));
+  return new Float32Array(covered.triangles.flatMap(({ points }) => points.flat()));
+}
+
+
+/** Shared vertices receive one area-weighted normal offset, avoiding cracks along curved seams. */
+export function offsetSurfacePositions(positions, distance) {
+  if (!Number.isFinite(distance) || distance < 0 || positions.length % 9 !== 0) throw new RangeError('A valid surface and non-negative offset are required');
+  const normals = new Map(), key = point => point.map(value => Math.round(value * 1e5)).join(',');
+  for (let i = 0; i < positions.length; i += 9) {
+    const a = new THREE.Vector3().fromArray(positions, i), b = new THREE.Vector3().fromArray(positions, i + 3), c = new THREE.Vector3().fromArray(positions, i + 6);
+    const normal = b.clone().sub(a).cross(c.clone().sub(a));
+    for (const point of [a,b,c]) {
+      const id = key(point.toArray());
+      if (!normals.has(id)) normals.set(id, new THREE.Vector3());
+      normals.get(id).add(normal);
+    }
+  }
+  const result = new Float32Array(positions.length);
+  for (let i = 0; i < positions.length; i += 3) {
+    const point = new THREE.Vector3().fromArray(positions, i);
+    point.addScaledVector(normals.get(key(point.toArray())).clone().normalize(), distance).toArray(result, i);
+  }
+  return result;
+}
+
+
+/** Cut a rectangular building envelope out of a triangulated ground face, preserving slope and elevations. */
+export function excludeBuildingFootprint(surface, box) {
+  const clip=(polygon,axis,value,high)=>{
+    const inside=p=>high?p[axis]>=value:p[axis]<=value,output=[];
+    for(let i=0;i<polygon.length;i++){
+      const a=polygon[i],b=polygon[(i+1)%polygon.length],ai=inside(a),bi=inside(b);
+      if(ai)output.push(a);
+      if(ai!==bi){const t=(value-a[axis])/(b[axis]-a[axis]);output.push(a.map((v,k)=>v+(b[k]-v)*t));}
+    }
+    return output;
+  };
+  const triangles=[];
+  for(const triangle of surface.triangles){
+    const middle=clip(clip(triangle.points,0,box.min.x,true),0,box.max.x,false);
+    const parts=[clip(triangle.points,0,box.min.x,false),clip(triangle.points,0,box.max.x,true),clip(middle,2,box.min.z,false),clip(middle,2,box.max.z,true)];
+    for(const polygon of parts)for(let i=1;i+1<polygon.length;i++){
+      const points=[polygon[0],polygon[i],polygon[i+1]],a=new THREE.Vector3().fromArray(points[0]),b=new THREE.Vector3().fromArray(points[1]),c=new THREE.Vector3().fromArray(points[2]);
+      const area=b.sub(a).cross(c.sub(a)).length()/2;if(area>1e-8)triangles.push({points,normal:triangle.normal,area});
+    }
+  }
+  if(!triangles.length)throw new Error('No ground surface outside the building envelope');
+  return {...surface,triangles,surfaceAreaM2:triangles.reduce((sum,t)=>sum+t.area,0)};
 }

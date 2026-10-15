@@ -9,11 +9,15 @@
     "test": "node --test",
     "test:ifc": "node scripts/check-ifc.mjs"
   },
-  "engines": { "node": "^20.19.0 || >=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.67",
     "@thatopen/components": "3.4.9",
     "@thatopen/components-front": "3.4.5",
     "@thatopen/fragments": "3.4.8",
+    "ai": "7.0.137",
     "camera-controls": "3.1.2",
     "three": "0.182.0",
     "web-ifc": "0.0.77"

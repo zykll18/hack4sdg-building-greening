@@ -1,0 +1,36 @@
+/* Paper-fold inspiration: 21st.dev / cult-ui / Folded Card. Native UI and pin motion authored for this workspace. */
+.project-note { position: absolute; z-index: 2; top: 104px; left: 26px; width: 224px; max-width: calc(100% - 52px); max-height: calc(100% - 190px); color: #fff; }
+.project-note-paper { position: relative; display: flex; flex-direction: column; max-height: min(330px,calc(100dvh - 230px)); padding: 23px 16px 16px; background: linear-gradient(145deg,#397d5d,#2b664b 75%); border-radius: 2px 2px 20px 2px; box-shadow: 4px 13px 23px #1d46362d,inset 0 1px #ffffff29; transform-origin: 50% 8px; }
+.project-note-paper::after { content: ''; position: absolute; bottom: 0; right: 0; width: 24px; height: 24px; background: linear-gradient(135deg,#ffffff16,#163f2c90); border-radius: 0 0 24px 0; pointer-events: none; }
+.project-note[data-state=pinned] .project-note-paper { transform: rotate(-1.8deg); }
+.project-note[data-state=pinned] { width: 194px; }
+.project-note-pin { position: absolute; z-index: 1; top: -14px; left: calc(50% - 18px); width: 36px; height: 39px; transform: rotate(-10deg); pointer-events: none; filter: drop-shadow(2px 3px 2px #18342655); }
+.project-note[data-state=editing] .project-note-pin { opacity: .5; transform: translate(10px,-9px) rotate(15deg); }
+.project-note-pin::before { content: ''; position: absolute; left: 16px; top: 17px; width: 3px; height: 23px; background: linear-gradient(90deg,#bbc7c0,#f5faf7,#899d90); transform: rotate(22deg); border-radius: 0 0 2px 2px; }
+.project-note-pin::after { content: ''; position: absolute; left: 7px; top: 0; width: 24px; height: 24px; border-radius: 50%; background: radial-gradient(circle at 32% 27%,#ffffff 0,#e9f2ed 23%,#b7c9be 57%,#7b9786 85%); box-shadow: inset -2px -3px 4px #56736066,0 2px 1px #244d3b50; }
+.project-note-kicker { flex-shrink: 0; margin: 0 0 4px; color: #ffffffc7; letter-spacing: .16em; font-size: 8px; }
+.project-note h2 { flex-shrink: 0; color: #fff; font-size: 16px; letter-spacing: -.03em; margin-bottom: 12px; }
+.project-note-model { display: none; }
+.project-note form { display: flex; flex-direction: column; gap: 9px; min-height: 0; }
+.project-note-fields { display: grid; grid-auto-rows: max-content; gap: 8px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #ffffff55 transparent; padding: 1px 2px 2px; }
+.project-note label { display: grid; gap: 4px; color: #fff; font-size: 10px; }
+.project-note input,.project-note select,.project-note textarea { width: 100%; min-width: 0; min-height: 30px; border: 1px solid #ffffff50; border-radius: 5px; background: #ffffff0e; padding: 6px 8px; color: #fff; font-size: 11px; }
+.project-note input::placeholder,.project-note textarea::placeholder { color: #ffffff9c; }
+.project-note option { color: #fff; background: #2b664b; }
+.project-note input:focus-visible,.project-note select:focus-visible,.project-note textarea:focus-visible,.project-note button:focus-visible,.project-note summary:focus-visible { outline-color: #fff; }
+.project-note details { border-top: 1px solid #ffffff26; padding-top: 8px; }
+.project-note details summary { color: #fff; font-size: 10px; cursor: pointer; }
+.project-note details label { margin-top: 8px; }
+.project-note button { flex-shrink: 0; min-height: 32px; color: #fff; border-color: #ffffff77; background: #ffffff14; padding: 7px 8px; font-size: 11px; }
+.project-note button:hover:not(:disabled) { background: #ffffff25; border-color: #fff; }
+.project-note button[type=submit] { margin: 0; background: #285f46; }
+.project-note-status { flex-shrink: 0; font-size: 9px; color: #fff; line-height: 1.55; margin: 8px 0 0; }
+.project-note-status:empty { display: none; }
+.project-note-summary { display: grid; gap: 6px; min-height: 0; overflow-y: auto; padding: 0 0 11px; }
+.project-note-summary strong { font-size: 19px; font-weight: 550; overflow-wrap: anywhere; }
+.project-note-summary span { font-size: 11px; }
+.project-note-summary small { font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.project-note-summary small:empty { display: none; }
+.project-note [data-background-edit] { width: 100%; font-size: 11px; }
+@media (max-width: 760px) { .project-note { top: 102px; left: 18px; width: 216px; max-width: calc(100% - 36px); } .project-note[data-state=pinned] { width: 184px; } }
+@media (prefers-reduced-motion: reduce) { .project-note * { transition: none; } }

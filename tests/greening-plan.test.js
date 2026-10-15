@@ -1,32 +1,37 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calculatePlan, PLANS } from '../src/domain/greening-plan.js';
+import { costBasis } from '../src/domain/cost-assessment.js';
+const quote = value => ({value,source:'Synthetic quote fixture',date:'2026-10-14',basis:'scenario'});
+const costs = regions => ({basis:costBasis({regions,plan:PLANS[0],years:20}),installationHkd:quote(120000),annualMaintenanceHkd:quote(1000),replacementHkd:quote(0),endOfLifeHkd:quote(0)});
 const region = (id, type, value) => ({ id, type, name: id, modelVersion: 'sha256:model', projectId: 'project', globalId: `guid-${id}`, geometrySource: 'IFC display geometry', usableArea: { value, unit: 'm2', provenance: 'user-confirmed', source: 'Area confirmed in presentation' } });
 
-test('four region types share identities, scope and additive results across both plans', () => {
+test('the current proposal preserves all four region identities, scope and additive results', () => {
   const regions = [region('roof','roof',100),region('wall','facade',80),region('terrace','terrace',30),region('ground','ground',60)];
   for (const plan of PLANS) {
     const result = calculatePlan({ regions, plan, years: 20 });
     assert.deepEqual(result.items.map((item) => item.regionId), regions.map((item) => item.id));
     assert.equal(result.items.length, 4);
-    assert.equal(result.totalCostHkd, result.items.reduce((sum,item) => sum+item.totalCostHkd,0));
-    assert.equal(result.netDifferenceKgCo2e, result.items.reduce((sum,item) => sum+item.netDifferenceKgCo2e,0));
-    assert.equal(result.items.find((item) => item.regionType==='ground').avoidedOperationalKgCo2e, 0);
+    assert.equal(result.totalCostHkd, null);
+    assert.equal(result.costAssessment.status, 'data-needed');
+    assert.equal(result.netDifferenceKgCo2e, null);
+    assert.equal(result.items.find((item) => item.regionType==='ground').avoidedOperationalKgCo2e, null);
+    assert.equal(result.carbonAssessment.status, 'data-needed');
     assert.match(result.scope, /not a whole-building/);
-    assert.ok(result.items.every((item) => item.areaProvenance==='user-confirmed' && item.factors.installationKgCo2eM2.provenance==='assumed'));
+    assert.ok(result.items.every((item) => item.areaProvenance==='user-confirmed' && item.factors.installationKgCo2eM2 === null));
   }
 });
 test('aggregate budget is checked even when individual region costs fit', () => {
   const regions=[region('a','roof',100),region('b','roof',100)];
-  const result=calculatePlan({regions,plan:PLANS[0],years:20,budgetHkd:100000});
-  assert.ok(result.items.every((item)=>item.installationCostHkd<100000));
+  const result=calculatePlan({regions,plan:PLANS[0],years:20,budgetHkd:100000,costEvidence:costs(regions)});
+  assert.ok(result.items.every((item)=>item.installationCostHkd===null));
   assert.ok(result.checks.some((check)=>check.includes('Total installation')));
   assert.equal(result.budgetHkd, 100000);
   assert.equal(result.withinBudget, false);
 });
 test('budget export preserves zero, exact limits and an absent budget', () => {
   const regions = [region('roof', 'roof', 100)];
-  const calculate = (budgetHkd) => calculatePlan({ regions, plan: PLANS[0], years: 20, budgetHkd });
+  const calculate = (budgetHkd) => calculatePlan({ regions, plan: PLANS[0], years: 20, budgetHkd, costEvidence:costs(regions) });
   const withoutBudget = calculate(undefined);
   assert.equal(withoutBudget.budgetHkd, null);
   assert.equal(withoutBudget.withinBudget, null);

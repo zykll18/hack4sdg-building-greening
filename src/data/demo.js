@@ -7,6 +7,7 @@ export const demoRoof = {
   usableArea: assumed(800, 'm2')
 };
 
+// Legacy arithmetic fixtures only. Production CURRENT_PLAN does not import these carbon rates.
 export const demoScenarios = [
   {
     id: 'extensive', name: 'Extensive green roof', description: 'Lower-maintenance planting across 60% of the usable roof.',

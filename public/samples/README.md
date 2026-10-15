@@ -49,3 +49,14 @@ The publisher documents a real project with construction schedules and as-built 
 The PNG previews are generated locally from each downloaded IFC's placed geometry using WebIFC and a static depth-buffer render with simplified lighting/glass treatment. They show the actual model shape and support choosing a sample. They are not photographs, the publisher's architectural visualizations, or screenshots of the web application. The source files are not modified. `IFC-model-previews.png` combines the three previews.
 
 The residential IFC is committed as lossless `Schependomlaan.ifc.gz` for repository size/upload compatibility. `npm run dev` and `npm run build` restore `Schependomlaan.ifc` through the existing asset-preparation script and verify the upstream SHA-256. The compressed/uncompressed round trip was checked byte-for-byte. The browser receives the original IFC, and the sample download stays a normal IFC.
+
+## Duplex Apartment architectural model
+
+Attribution: BSI (2020) “Duplex Apartment Test Files,” buildingSMART International.
+[Publisher and licence](https://github.com/buildingsmart-community/Community-Sample-Test-Files/tree/7ddf57a201f88a0c213d5322b02ed15e94a60a40/IFC%202.3.0.1%20%28IFC%202x3%29/Duplex%20Apartment). CC BY 4.0; the existing LICENSE-Community.txt is retained.
+
+`Duplex-Apartment.ifc` is the unchanged architectural `Duplex_A_20110907.ifc`, retrieved 2026-10-14 from the pinned revision above. 2,380,763 bytes; SHA-256 `b347a2c8aa8fff6db896a4417a9c50c22ac0ccd7c5cfc22b99b8d29336c606ed`, matched to the upstream Git LFS pointer. The local filename is an alias; IFC contents are unchanged.
+
+The source describes a two-storey duplex test model. WebIFC and That Open import checks produced IFC2X3, 224 source geometry items and 236 converted display components with retained GlobalIds. Current offline screening identified one conditional roof surface (~132.93 m²; named “Live Roof over Wood Joist Flat Roof”) and 23 conditional facades; no terrace candidates. These figures are display/screening estimates. This is a useful flat-roof contrast to KIT Office, not a verified Hong Kong project or structural suitability assessment. The source roof already refers to a live-roof construction; test recommendations must consider the supplied properties and any existing planting rather than assume a bare roof.
+
+Duplex-Apartment-preview.png is a static render of the original IFC triangles, using simplified lighting and opaque glass for clarity. The green roof colour comes from the source IFC material; no proposed vegetation is added in this image.

@@ -4,12 +4,12 @@
  * @typedef {{ projectId: string, modelVersion: string, roofElementId: string, usableArea: Quantity }} RoofInput
  * @typedef {{ id: string, name: string, description: string, coverageFraction: number,
  *  installationCostHkdM2: Quantity, maintenanceCostHkdM2Year: Quantity,
- *  installationKgCo2eM2: Quantity, annualAvoidedKgCo2eM2: Quantity,
+ *  installationKgCo2eM2: Quantity|null, annualAvoidedKgCo2eM2: Quantity|null,
  *  addedLoadKgM2: Quantity, checks: string[] }} GreeningScenario
  * @typedef {{ roof: RoofInput, scenario: GreeningScenario, years: number, budgetHkd?: number }} ComparisonInput
  */
 
-export const CALCULATION_VERSION = 'demo-1';
+export const CALCULATION_VERSION = 'intervention-3';
 
 export function assertQuantity(quantity, expectedUnit, field) {
   if (!quantity || !Number.isFinite(quantity.value) || quantity.unit !== expectedUnit ||

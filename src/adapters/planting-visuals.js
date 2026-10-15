@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { offsetSurfacePositions } from './greening-geometry.js';
+import { SPECIES_MODELS, speciesLeafGeometry, speciesFlowerGeometry, speciesModelParts } from './species-models.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
-const clamp = THREE.MathUtils.clamp;
 function random(seed) {
   let state = 2166136261;
   for (const char of String(seed)) state = Math.imul(state ^ char.charCodeAt(0), 16777619);
@@ -63,8 +64,13 @@ export function samplePlantingSites(surface, { spacing, radius, max = 220, seed 
   }
   return sites;
 }
-function leafGeometry() {
+function leafGeometry(climber = false) {
   const g = new THREE.BufferGeometry();
+  if (climber) {
+    const outline=[[0,0],[-.30,.18],[-.5,.5],[-.22,.44],[-.26,.72],[0,1],[.26,.72],[.22,.44],[.5,.5],[.30,.18]],positions=[];
+    for(let i=0;i<outline.length;i++)positions.push(0,.48,.055,...outline[i],0,...outline[(i+1)%outline.length],0);
+    g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();return g;
+  }
   // A folded, pointed leaf has depth and responds to light without an image billboard.
   g.setAttribute('position', new THREE.Float32BufferAttribute([0,0,0, -.24,.42,0, 0,.48,.07, 0,0,0, 0,.48,.07, .24,.42,0, -.24,.42,0, 0,1,0, 0,.48,.07, 0,.48,.07, 0,1,0, .24,.42,0], 3));
   g.computeVertexNormals(); return g;
@@ -101,7 +107,7 @@ function instanced(group, geometry, material, entries, name) {
   mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   mesh.computeBoundingSphere(); mesh.computeBoundingBox(); group.add(mesh);
 }
-function layer(group, positions, surface, type, dense) {
+function layer(group, positions, surface, type, dense, coverageM2) {
   const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); geometry.computeVertexNormals();
   const uvs = [];
   for (const triangle of surface.triangles) {
@@ -109,9 +115,9 @@ function layer(group, positions, surface, type, dense) {
     for (const point of triangle.points) { const p = new THREE.Vector3().fromArray(point); uvs.push(p.dot(basis.u) * .65, p.dot(basis.v) * .65); }
   }
   geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  const openSupport = type === 'facade' && !dense || type === 'terrace';
+  const openSupport = type === 'facade' || type === 'terrace';
   const material = new THREE.MeshStandardMaterial({ color: openSupport ? '#6f8275' : '#ffffff', map: openSupport ? null : groundTexture(), roughness: .98, side: THREE.DoubleSide, transparent: openSupport, opacity: openSupport ? .12 : 1, depthWrite: !openSupport });
-  const mesh = new THREE.Mesh(geometry, material); mesh.name = 'Calculated planting footprint'; mesh.userData.coverageM2 = surface.surfaceAreaM2; group.add(mesh);
+  const mesh = new THREE.Mesh(geometry, material); mesh.name = 'Calculated planting footprint'; mesh.userData.coverageM2 = coverageM2; mesh.visible = type !== 'facade'; group.add(mesh);
   if (openSupport) return;
   // Only the perimeter receives a bed edge; internal triangle diagonals stay invisible.
   const edges = new Map(), sides = [], depth = type === 'facade' ? .075 : dense ? .18 : .075;
@@ -128,17 +134,34 @@ function layer(group, positions, surface, type, dense) {
   const border = new THREE.Mesh(sideGeometry, new THREE.MeshStandardMaterial({ color: type === 'facade' ? '#344b41' : '#736251', roughness: 1, side: THREE.DoubleSide })); border.name = 'Planting bed edge'; group.add(border);
 }
 /** Decorative systems sit above the exact analytical footprint; they do not change quantities. */
-export function createPlantingVisual({ positions, type, planId, seed = 'region' }) {
+export function createPlantingVisual({ positions, type, planId, seed = 'region', shrubVariants = [], fernVariants = [], planting = null, detail = 'model' }) {
   const group = new THREE.Group(); group.name = 'Concept planting system';
   const dense = planId === 'landscape';
-  // A parallel vertical lift gives horizontal beds visible depth without changing their area.
-  if (type === 'roof' || type === 'ground') { positions = new Float32Array(positions); for (let i = 1; i < positions.length; i += 3) positions[i] += dense ? .18 : .075; }
+  const species = planting ? SPECIES_MODELS[planting.plantId] : null;
+  if (planting && !species) throw new Error('Unknown species model');
+  const density = planting?.density ?? 1;
+  if (!Number.isFinite(density) || density < .5 || density > 2) throw new RangeError('Visual density must be between 0.5 and 2');
+  group.userData.plantId = planting?.plantId ?? null;
+  group.userData.density = density;
+  group.userData.modelKind = species ? 'procedural-concept' : 'generic-concept';
+  const analyticalSurface = surfaceTriangles(positions);
+  group.userData.coverageM2 = analyticalSurface.surfaceAreaM2; group.userData.type = type;
+  if (!analyticalSurface.triangles.length) return group;
+  const offset = .035 + (type === 'roof' || type === 'ground' ? dense ? .18 : .075 : 0);
+  positions = offsetSurfacePositions(positions, offset);
   const surface = surfaceTriangles(positions);
-  group.userData.coverageM2 = surface.surfaceAreaM2; group.userData.type = type;
-  if (!surface.triangles.length) return group;
-  layer(group, positions, surface, type, dense);
+  group.userData.surfaceOffsetM = offset;
+  layer(group, positions, surface, type, dense, analyticalSurface.surfaceAreaM2);
   const leaves = [], stems = [], crowns = [], boxes = [], rails = [], blooms = [], rng = random(seed + ':foliage');
-  const leafPalette = dense ? ['#214f37','#326b42','#4a824c','#689651'] : ['#386c43','#54854b','#749951','#91aa61'];
+  const assetBatches = [
+    { name: 'Textured shrub', variants: shrubVariants, entries: shrubVariants.map(() => []) },
+    { name: 'Textured fern', variants: fernVariants, entries: fernVariants.map(() => []) }
+  ];
+  const addAsset = (assetIndex, position, height) => {
+    const batch = assetBatches[assetIndex], index = Math.floor(rng() * batch.variants.length);
+    batch.entries[index].push({ position, quaternion: new THREE.Quaternion().setFromAxisAngle(UP, rng() * Math.PI * 2), scale: new THREE.Vector3(height, height, height) });
+  };
+  const leafPalette = species ? [species.colour, new THREE.Color(species.colour).multiplyScalar(.87).getStyle(), new THREE.Color(species.colour).multiplyScalar(1.1).getStyle()] : dense ? ['#214f37','#326b42','#4a824c','#689651'] : ['#386c43','#54854b','#749951','#91aa61'];
   const addLeaf = (position, direction, length, variation = 1) => {
     const q = new THREE.Quaternion().setFromUnitVectors(UP, direction.clone().normalize());
     q.multiply(new THREE.Quaternion().setFromAxisAngle(UP, rng() * Math.PI * 2));
@@ -161,15 +184,52 @@ export function createPlantingVisual({ positions, type, planId, seed = 'region' 
       addLeaf(center.clone().add(offset), offset.clone().addScaledVector(growth, height * .3), wall ? radius * .43 : Math.min(radius * .4, .16 + rng() * .06));
     }
   };
-  if (type === 'facade') {
-    const sites = samplePlantingSites(surface, { spacing: dense ? .48 : .65, radius: dense ? .22 : .19, max: 260, seed: seed + ':facade' });
+  if (species && type !== 'facade') {
+    const terrace = type === 'terrace';
+    const sites = samplePlantingSites(surface, { spacing: (terrace ? 1.15 : species.spacing) / Math.sqrt(density), radius: terrace ? .42 : species.radius, max: terrace ? 56 : detail === 'simple' ? 180 : 480, seed: seed + ':species-sites' });
+    const entries = [];
     for (const site of sites) {
-      const p = new THREE.Vector3().fromArray(site.position), basis = frame(site.normal);
-      addBush(site, dense ? .22 : .18, dense ? .27 : .12, .035, true);
-      if (!dense) {
-        const q = new THREE.Quaternion().setFromUnitVectors(UP, basis.v);
-        rails.push({ position: p.clone().addScaledVector(basis.n, .026), quaternion: q, scale: new THREE.Vector3(.013,.33,.013) });
+      const base = new THREE.Vector3().fromArray(site.position), normal = new THREE.Vector3().fromArray(site.normal);
+      const q = new THREE.Quaternion().setFromUnitVectors(UP, normal);
+      q.multiply(new THREE.Quaternion().setFromAxisAngle(UP, rng() * Math.PI * 2));
+      if (terrace) boxes.push({ position: base.clone().addScaledVector(normal,.14), quaternion:q.clone(), scale:new THREE.Vector3(.58,.28,.52) });
+      entries.push({position:base.clone().addScaledVector(normal, terrace ? .29 : 0),quaternion:q,scale:new THREE.Vector3(1,1,1)});
+    }
+    for (const part of speciesModelParts(planting.plantId)) instanced(group,part.geometry,part.material,entries,`${planting.plantId} · ${part.name}`);
+    group.userData.clumpCount = sites.length;
+  } else if (type === 'facade') {
+    // Each continuous stem is checked against the actual wall; holes interrupt growth.
+    const sites = samplePlantingSites(surface, { spacing: (species?.spacing ?? (dense ? .6 : .85)) / Math.sqrt(density), radius: .16, max: detail === 'simple' ? 80 : dense ? 240 : 160, seed: seed + ':climbers' });
+    const addStem = (a,b,width) => {
+      const direction=b.clone().sub(a);
+      rails.push({position:a.clone().add(b).multiplyScalar(.5),quaternion:new THREE.Quaternion().setFromUnitVectors(UP,direction.clone().normalize()),scale:new THREE.Vector3(width,direction.length(),width)});
+    };
+    const grow = (base,basis,length,lateral,branch=false) => {
+      let previous=base.clone(); const segments=Math.ceil(length/.17), phase=rng()*Math.PI*2;
+      for(let step=1;step<=segments;step++) {
+        const t=step/segments;
+        const point=base.clone().addScaledVector(basis.v,length*t).addScaledVector(basis.u,lateral*t+Math.sin(t*5+phase)*.08*t);
+        if(!footprintFits(surface,point.toArray(),basis.n.toArray(),.20))break;
+        const midpoint=previous.clone().add(point).multiplyScalar(.5);
+        if(!footprintFits(surface,midpoint.toArray(),basis.n.toArray(),.09))break;
+        addStem(previous.clone().addScaledVector(basis.n,.04),point.clone().addScaledVector(basis.n,.04),branch?.008:.012);
+        for(const side of [-1,1]) {
+          const leafBase=point.clone().addScaledVector(basis.n,.06);
+          const direction=basis.u.clone().multiplyScalar(side*(.65+rng()*.3)).addScaledVector(UP,.45+rng()*.3).addScaledVector(basis.n,.22);
+          addLeaf(leafBase,direction,(species?.leafLength ?? .13)*(1+rng()*.25),.85);
+          if (species?.flower && step%4===0 && side===1) {
+            const size=species.flowerShape==='bract'?.055:.033;
+            blooms.push({position:leafBase.clone().addScaledVector(basis.u,.15).addScaledVector(basis.n,.07),quaternion:new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),basis.n),scale:new THREE.Vector3(size,size,size),color:species.flower});
+          }
+          if(dense) addLeaf(midpoint.clone().addScaledVector(basis.n,.075),direction,.12+rng()*.06,.8);
+        }
+        if(!branch && step%5===0)grow(point,basis,.5+rng()*.45,(step%10?1:-1)*(.4+rng()*.3),true);
+        previous=point;
       }
+    };
+    for(const site of sites) {
+      const basis=frame(site.normal),base=new THREE.Vector3().fromArray(site.position);
+      grow(base,basis,(dense?2.8:2.1)*(.7+rng()*.6),(rng()-.5)*.6);
     }
   } else if (type === 'terrace') {
     const sites = samplePlantingSites(surface, { spacing: 1.45, radius: .57, max: 32, seed: seed + ':planters' });
@@ -177,23 +237,38 @@ export function createPlantingVisual({ positions, type, planId, seed = 'region' 
       const base = new THREE.Vector3().fromArray(site.position), height = dense ? .42 : .30;
       const q = new THREE.Quaternion().setFromUnitVectors(UP, new THREE.Vector3().fromArray(site.normal));
       boxes.push({ position: base.clone().addScaledVector(UP, height / 2), quaternion: q, scale: new THREE.Vector3(.85,height,.60) });
-      addBush(site, .35, dense ? .9 : .48, height);
+      if (fernVariants.length) {
+        const plantHeight = Math.min(dense ? .26 : .20, .27 / Math.max(...fernVariants.map(variant => variant.radius)));
+        addAsset(1, base.clone().addScaledVector(UP, height), plantHeight);
+      } else addBush(site, .35, dense ? .9 : .48, height);
     }
   } else {
-    const shrub = dense, radius = shrub ? .32 : .19;
-    const sites = samplePlantingSites(surface, { spacing: shrub ? .9 : .42, radius, max: shrub ? 140 : 240, seed: seed + ':beds' });
-    for (const site of sites) {
-      if (shrub) addBush(site, radius, .55 + rng() * .3);
+    const textured = (dense || type === 'ground' || type === 'roof') && (shrubVariants.length > 0 || fernVariants.length > 0);
+    const fernHeight = dense ? .32 : .23, shrubHeight = .80;
+    const radius = textured ? Math.max(.32, ...fernVariants.map(variant => variant.radius * fernHeight), ...(dense ? shrubVariants.map(variant => .10 + variant.radius * shrubHeight) : [])) : dense ? .32 : .19;
+    const sites = samplePlantingSites(surface, { spacing: textured ? Math.max(1.05, radius * 1.8) : dense ? .9 : .42, radius, max: textured ? 80 : dense ? 140 : 240, seed: seed + ':beds' });
+    sites.forEach((site, siteIndex) => {
+      const base = new THREE.Vector3().fromArray(site.position), basis = frame(site.normal);
+      if (textured) {
+        if (fernVariants.length) addAsset(1, base.clone(), fernHeight * (.82 + rng() * .18));
+        if (dense && shrubVariants.length && (siteIndex % 2 === 0 || !fernVariants.length)) {
+          for (let clump = 0; clump < 2; clump++) {
+            const angle = clump * Math.PI + rng() * .5;
+            // Anchor lateral offsets on the actual plane, including sloped roofs.
+            const position = base.clone().addScaledVector(basis.u, Math.cos(angle) * .10).addScaledVector(basis.v, Math.sin(angle) * .10);
+            addAsset(0, position, .55 + rng() * .25);
+          }
+        } else if (!fernVariants.length && !dense) addBush(site, radius, .23);
+      } else if (dense) addBush(site, radius, .55 + rng() * .3);
       else {
-        const base = new THREE.Vector3().fromArray(site.position);
         for (let j = 0; j < 9; j++) {
           const angle = rng() * Math.PI * 2;
-          const p = base.clone().add(new THREE.Vector3(Math.cos(angle) * .05, 0, Math.sin(angle) * .05));
+          const p = base.clone().addScaledVector(basis.u, Math.cos(angle) * .05).addScaledVector(basis.v, Math.sin(angle) * .05);
           addLeaf(p, new THREE.Vector3(Math.cos(angle) * .45, 1, Math.sin(angle) * .45), .16 + rng() * .11, .45);
         }
       }
-      if (type === 'roof' && !dense && rng() < .25) blooms.push({ position: new THREE.Vector3().fromArray(site.position).addScaledVector(UP,.23), scale: new THREE.Vector3(.025,.025,.025), color: rng() > .6 ? '#e7dba2' : '#c99e91' });
-    }
+      if (type === 'roof' && !dense && rng() < .25) blooms.push({ position: base.clone().addScaledVector(UP,.23), scale: new THREE.Vector3(.025,.025,.025), color: rng() > .6 ? '#e7dba2' : '#c99e91' });
+    });
     if (type === 'ground' && dense) {
       const trees = samplePlantingSites(surface, { spacing: 3.8, radius: 1.05, max: 12, seed: seed + ':trees' });
       for (const site of trees) {
@@ -203,12 +278,21 @@ export function createPlantingVisual({ positions, type, planId, seed = 'region' 
       }
     }
   }
-  instanced(group, leafGeometry(), new THREE.MeshStandardMaterial({ color:'#ffffff', roughness:.86, side:THREE.DoubleSide }), leaves, 'Folded foliage');
+  for (const batch of assetBatches) batch.entries.forEach((entries, index) => {
+    if (!entries.length) return;
+    const { geometry, material } = batch.variants[index];
+    const mesh = new THREE.InstancedMesh(geometry, material, entries.length), transform = new THREE.Object3D();
+    mesh.name = `${batch.name} variant ${index + 1}`;
+    mesh.userData.sharedPlantAsset = true;
+    entries.forEach((entry, i) => { transform.position.copy(entry.position); transform.quaternion.copy(entry.quaternion); transform.scale.copy(entry.scale); transform.updateMatrix(); mesh.setMatrixAt(i, transform.matrix); });
+    mesh.instanceMatrix.needsUpdate = true; mesh.computeBoundingSphere(); mesh.computeBoundingBox(); group.add(mesh);
+  });
+  instanced(group, species && type === 'facade' ? speciesLeafGeometry(species.shape) : leafGeometry(type === 'facade'), new THREE.MeshStandardMaterial({ color:'#ffffff', roughness:.86, side:THREE.DoubleSide }), leaves, type === 'facade' ? 'Climbing leaves' : 'Folded foliage');
   instanced(group, new THREE.IcosahedronGeometry(1,2), new THREE.MeshStandardMaterial({ color:'#ffffff', roughness:.97 }), crowns, 'Shrub and tree foliage');
   instanced(group, new THREE.CylinderGeometry(.75,1,1,7), new THREE.MeshStandardMaterial({ color:'#72523c', roughness:1 }), stems, 'Tree trunks');
   instanced(group, new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({ color: dense ? '#9c9385' : '#69736c', roughness:.92 }), boxes, 'Terrace planter boxes');
-  instanced(group, new THREE.CylinderGeometry(1,1,1,4), new THREE.MeshStandardMaterial({ color:'#69786e', roughness:.8 }), rails, 'Climber support stems');
-  instanced(group, new THREE.IcosahedronGeometry(1,1), new THREE.MeshStandardMaterial({ color:'#ffffff', roughness:.85 }), blooms, 'Sedum flower heads');
+  instanced(group, new THREE.CylinderGeometry(1,1,1,4), new THREE.MeshStandardMaterial({ color:'#526740', roughness:.95 }), rails, 'Climbing vine stems');
+  instanced(group, species?.flower ? speciesFlowerGeometry(species.flowerShape) : new THREE.IcosahedronGeometry(1,1), new THREE.MeshStandardMaterial({ color:'#ffffff', roughness:.85, side:THREE.DoubleSide }), blooms, species?.flower ? 'Species flowers / bracts' : 'Sedum flower heads');
   group.traverse(object => { if (object.isMesh) object.userData.decorativePlanting = object.name !== 'Calculated planting footprint'; });
   return group;
 }
