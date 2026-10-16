@@ -15,6 +15,11 @@
       "file": "Schependomlaan.ifc",
       "bytes": 49286967,
       "sha256": "2c3565ca1904f2aa61adab92024cf3755b2c5b21a498144d3094d7cb58cebec7"
+    },
+    {
+      "file": "Klassiqua-Office-2026.ifc",
+      "bytes": 1380399,
+      "sha256": "efaaecd681ecd1736e720e5a2db782c300809c0d55c8d642f61b078ade699846"
     }
   ],
   "checks": {
@@ -37,6 +42,13 @@
       "sourceGeometryEntries": 3643,
       "displayComponents": 3510,
       "fragmentBytes": 6454680,
+      "missingDisplayGlobalIds": 0
+    },
+    "Klassiqua-Office-2026.ifc": {
+      "schema": "IFC4X3_ADD2",
+      "sourceGeometryEntries": 547,
+      "displayComponents": 585,
+      "fragmentBytes": 110776,
       "missingDisplayGlobalIds": 0
     }
   }

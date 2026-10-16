@@ -44,9 +44,18 @@ Retrieved 2026-10-07. Both original files retain their IFC headers. Local names 
 
 The publisher documents a real project with construction schedules and as-built point clouds, which supports its project provenance. This does not establish that the IFC is a certified final as-built model. The source warns of some dataset errors. Our checks establish parser/identity compatibility only; geometry and engineering quantities still need review.
 
+### Klassiqua Office Archetype 2026
+
+- Authors: Tim Dannapfel, Dirk Müller, Jan Streblow, Matthias Müller, Matthias Karber and Patrick Hickertz.
+- Source: [Archetypes for German Office Buildings of Construction Years 1970, 1998 and 2026](https://doi.org/10.5281/zenodo.21820756), also mirrored unchanged by [BIMvoice IFC samples](https://github.com/BIMvoice/ifcsamples/tree/main/IFC4x3/Klassiqua-Office-Archetypes).
+- License: Creative Commons Attribution 4.0 International. The existing `LICENSE.txt` contains the license text.
+- `Klassiqua-Office-2026.ifc`: unchanged 2026 office archetype, 1,380,399 bytes; SHA-256 `efaaecd681ecd1736e720e5a2db782c300809c0d55c8d642f61b078ade699846`.
+
+The file uses the final `IFC4X3_ADD2` schema and contains four building storeys, 88 `IfcWall` entities, 167 windows, 49 doors, 11 slabs and 56 coverings. WebIFC produced 547 source geometry entries and 585 converted display components with retained GlobalIds. Offline screening found one conditional flat-roof slab, 24 conditional facade candidates and no terrace candidates. Several wall names describe drywall, so exterior identity still requires review before recommendation. Its top assembly is not represented by `IfcRoof`; this makes it useful for checking that planting screening considers geometry and properties rather than relying on a roof class name. It is an archetype for software and research use, not an engineering-ready planting design.
+
 ### Geometry previews
 
-The PNG previews are generated locally from each downloaded IFC's placed geometry using WebIFC and a static depth-buffer render with simplified lighting/glass treatment. They show the actual model shape and support choosing a sample. They are not photographs, the publisher's architectural visualizations, or screenshots of the web application. The source files are not modified. `IFC-model-previews.png` combines the three previews.
+The PNG previews are generated locally from each downloaded IFC's placed geometry using WebIFC and a static depth-buffer render with simplified lighting/glass treatment. They show the actual model shape and support choosing a sample. They are not photographs, the publisher's architectural visualizations, or screenshots of the web application. The source files are not modified. `IFC-model-previews.png` combines the three earlier previews; `Klassiqua-Office-2026-preview.png` shows the newly added office archetype.
 
 The residential IFC is committed as lossless `Schependomlaan.ifc.gz` for repository size/upload compatibility. `npm run dev` and `npm run build` restore `Schependomlaan.ifc` through the existing asset-preparation script and verify the upstream SHA-256. The compressed/uncompressed round trip was checked byte-for-byte. The browser receives the original IFC, and the sample download stays a normal IFC.
 

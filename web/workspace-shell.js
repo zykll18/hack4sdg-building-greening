@@ -86,8 +86,8 @@ export function createWorkspaceShell({ catalog, samples, getState, onRouteChange
     const card = document.createElement('button'); card.type = 'button'; card.className = 'glass-card sample-card';
     const image = document.createElement('img'); image.src = `/samples/${sample.preview}`; image.alt = `${sample.name} reference geometry preview`; image.loading = 'lazy';
     const info = document.createElement('span');
-    const title = document.createElement('strong'); title.textContent = id === 'duplex-apartment' ? 'Duplex apartment' : id === 'kit-office' ? 'KIT office' : id === 'kit-house' ? 'KIT house' : 'Schependomlaan residence';
-    const subtitle = document.createElement('small'); subtitle.textContent = id === 'duplex-apartment' ? 'Flat-roof IFC · 2.4 MB' : id === 'schependomlaan' ? 'Residential IFC · 49.3 MB' : id === 'kit-office' ? 'Architectural IFC · 10.9 MB' : 'Architectural IFC · 2.6 MB';
+    const title = document.createElement('strong'); title.textContent = sample.title ?? (id === 'duplex-apartment' ? 'Duplex apartment' : id === 'kit-office' ? 'KIT office' : id === 'kit-house' ? 'KIT house' : 'Schependomlaan residence');
+    const subtitle = document.createElement('small'); subtitle.textContent = sample.subtitle ?? (id === 'duplex-apartment' ? 'Flat-roof IFC · 2.4 MB' : id === 'schependomlaan' ? 'Residential IFC · 49.3 MB' : id === 'kit-office' ? 'Architectural IFC · 10.9 MB' : 'Architectural IFC · 2.6 MB');
     info.append(title, subtitle); card.append(image, info);
     card.addEventListener('click', () => onOpenSample(id));
     $('dashboard-samples').append(card);

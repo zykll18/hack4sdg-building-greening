@@ -36,7 +36,7 @@ Scenario profiles are structured rules. Qwen suggestions are conditional drafts;
 
 ## Architectural samples and licensing
 
-Project offers original KIT office/house IFC designs (explicitly fictional), the documented Schependomlaan residential design model, official That Open school architecture Fragments/structural IFC and the compact buildingSMART test house. Source links, byte hashes, license notices and local geometry previews are in `public/samples/README.md`. Schependomlaan's byte-identical original IFC is restored from the bundled lossless gzip by the asset-preparation script; its 49.3 MB conversion may take longer.
+Project offers original KIT office/house IFC designs (explicitly fictional), the CC BY 4.0 Klassiqua four-storey office archetype, the documented Schependomlaan residential design model, official That Open school architecture Fragments/structural IFC and the compact buildingSMART test house. Source links, byte hashes, license notices and local geometry previews are in `public/samples/README.md`. Schependomlaan's byte-identical original IFC is restored from the bundled lossless gzip by the asset-preparation script; its 49.3 MB conversion may take longer.
 
 The viewer reuses [That Open Components](https://github.com/ThatOpen/engine_components). [xeokit-bim-viewer](https://github.com/xeokit/xeokit-bim-viewer) supplies UI inspiration only. No xeokit implementation is included.
 
