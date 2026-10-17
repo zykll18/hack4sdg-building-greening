@@ -12,6 +12,19 @@
     "sha256": "00b4040c0126cbdb10721353ef1b7658527d276b5d30080e70ad43d5367759b8",
     "bytes": 120353
   },
+  "asparagus-densiflorus-myersii": {
+    "alt": "Asparagus densiflorus Myersii — reference photograph",
+    "author": "Photo by David J. Stang",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Asparagus_densiflorus_Myersii_1zz.jpg",
+    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Asparagus_densiflorus_Myersii_1zz.jpg/960px-Asparagus_densiflorus_Myersii_1zz.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "src": "/plants/library/asparagus-densiflorus-myersii.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "reviewedAt": "2026-10-17",
+    "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+    "sha256": "23d3f4d277f36dc6d7d3787e9cc4d0d91d619d9df00c8f1af2b112584387d845",
+    "bytes": 322175
+  },
   "bougainvillea-spectabilis": {
     "src": "/plants/library/bougainvillea-spectabilis.jpg",
     "alt": "Bougainvillea spectabilis — reference photograph",
@@ -38,6 +51,19 @@
     "sha256": "4fb452d5e736b4bbb8bcfc605b8af9d1679d4020deec5b04d004a2becddcb66a",
     "bytes": 332446
   },
+  "lantana-montevidensis": {
+    "alt": "Lantana montevidensis — reference photograph",
+    "author": "Krzysztof Ziarnek, Kenraiz",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lantana_montevidensis_kz01.jpg",
+    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Lantana_montevidensis_kz01.jpg/960px-Lantana_montevidensis_kz01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "src": "/plants/library/lantana-montevidensis.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "reviewedAt": "2026-10-17",
+    "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+    "sha256": "2720b638eedcd53ccdba4c75fa098ca8c17cb829465d2f357d8bf814bb926092",
+    "bytes": 91429
+  },
   "ophiopogon-japonicus": {
     "src": "/plants/library/ophiopogon-japonicus.jpg",
     "alt": "Ophiopogon japonicus — reference photograph",
@@ -50,6 +76,32 @@
     "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
     "sha256": "988e4f4f7cee4c4dfaf652915785a75547333368a46b13648b10a0196ec6a8d5",
     "bytes": 190240
+  },
+  "parthenocissus-dalzielii": {
+    "src": "/plants/library/parthenocissus-dalzielii.jpg",
+    "alt": "Parthenocissus dalzielii — reference photograph",
+    "author": "阿橋 HQ",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E7%88%AC%E7%89%86%E8%99%8E_Parthenocissus_dalzielii_-%E9%A6%99%E6%B8%AF%E5%A4%A7%E5%9F%94%E6%B5%B7%E6%BF%B1%E5%85%AC%E5%9C%92_Taipo_Waterfront_Park,_Hong_Kong-_(9229894342).jpg",
+    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/%E7%88%AC%E7%89%86%E8%99%8E_Parthenocissus_dalzielii_-%E9%A6%99%E6%B8%AF%E5%A4%A7%E5%9F%94%E6%B5%B7%E6%BF%B1%E5%85%AC%E5%9C%92_Taipo_Waterfront_Park%2C_Hong_Kong-_%289229894342%29.jpg/960px-%E7%88%AC%E7%89%86%E8%99%8E_Parthenocissus_dalzielii_-%E9%A6%99%E6%B8%AF%E5%A4%A7%E5%9F%94%E6%B5%B7%E6%BF%B1%E5%85%AC%E5%9C%92_Taipo_Waterfront_Park%2C_Hong_Kong-_%289229894342%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "reviewedAt": "2026-10-11",
+    "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+    "sha256": "8d480b6794c4f312261acb65cb74dc1977bad00bbf47ec74faad4edbbd1555cd",
+    "bytes": 152718
+  },
+  "pyrostegia-venusta": {
+    "alt": "Pyrostegia venusta — reference photograph",
+    "author": "Dinkun Chen",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pyrostegia_venusta_in_China.jpg",
+    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Pyrostegia_venusta_in_China.jpg/960px-Pyrostegia_venusta_in_China.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "src": "/plants/library/pyrostegia-venusta.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "reviewedAt": "2026-10-17",
+    "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+    "sha256": "8528df27a5d0628fff30365c26b6947b7570b79678e1ac50b4408bba61cedce0",
+    "bytes": 263749
   },
   "sedum-lineare": {
     "src": "/plants/library/sedum-lineare.jpg",
@@ -64,6 +116,19 @@
     "sha256": "72ce818951e9e01b776be4ebfa9e03ee011623876cfb3177f90c328dbbb22674",
     "bytes": 168360
   },
+  "thunbergia-grandiflora": {
+    "alt": "Thunbergia grandiflora — reference photograph",
+    "author": "Geographer",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Thunbergia_grandiflora_hk.jpg",
+    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Thunbergia_grandiflora_hk.jpg/960px-Thunbergia_grandiflora_hk.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "src": "/plants/library/thunbergia-grandiflora.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "reviewedAt": "2026-10-17",
+    "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+    "sha256": "563ecb3c0f906bca5c7f99064e719a60e7643c0a3ef109f06062c918b9413cef",
+    "bytes": 577606
+  },
   "trachelospermum-jasminoides": {
     "src": "/plants/library/trachelospermum-jasminoides.jpg",
     "alt": "Trachelospermum jasminoides — reference photograph",
@@ -77,17 +142,17 @@
     "sha256": "842c5c565c4053e870fa7d9662fb54481db6f4192daf75804dbff5d5df485e91",
     "bytes": 174248
   },
-  "parthenocissus-dalzielii": {
-    "src": "/plants/library/parthenocissus-dalzielii.jpg",
-    "alt": "Parthenocissus dalzielii — reference photograph",
-    "author": "阿橋 HQ",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E7%88%AC%E7%89%86%E8%99%8E_Parthenocissus_dalzielii_-%E9%A6%99%E6%B8%AF%E5%A4%A7%E5%9F%94%E6%B5%B7%E6%BF%B1%E5%85%AC%E5%9C%92_Taipo_Waterfront_Park,_Hong_Kong-_(9229894342).jpg",
-    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/%E7%88%AC%E7%89%86%E8%99%8E_Parthenocissus_dalzielii_-%E9%A6%99%E6%B8%AF%E5%A4%A7%E5%9F%94%E6%B5%B7%E6%BF%B1%E5%85%AC%E5%9C%92_Taipo_Waterfront_Park%2C_Hong_Kong-_%289229894342%29.jpg/960px-%E7%88%AC%E7%89%86%E8%99%8E_Parthenocissus_dalzielii_-%E9%A6%99%E6%B8%AF%E5%A4%A7%E5%9F%94%E6%B5%B7%E6%BF%B1%E5%85%AC%E5%9C%92_Taipo_Waterfront_Park%2C_Hong_Kong-_%289229894342%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "license": "CC BY-SA 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
-    "reviewedAt": "2026-10-11",
+  "zephyranthes-candida": {
+    "alt": "Zephyranthes candida — reference photograph",
+    "author": "Wee Hong",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zephyranthes_candida_(181218-1209).jpg",
+    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Zephyranthes_candida_%28181218-1209%29.jpg/960px-Zephyranthes_candida_%28181218-1209%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "src": "/plants/library/zephyranthes-candida.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "reviewedAt": "2026-10-17",
     "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
-    "sha256": "8d480b6794c4f312261acb65cb74dc1977bad00bbf47ec74faad4edbbd1555cd",
-    "bytes": 152718
+    "sha256": "337da9689f61ef940a89aead67c7ea513586ace7f5f6db9afef2758e3dad8fe8",
+    "bytes": 295258
   }
 }

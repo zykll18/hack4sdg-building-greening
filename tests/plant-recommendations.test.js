@@ -40,8 +40,8 @@ test('month reorders ornamental preference without excluding perennial candidate
 test('facade rooting system is required even for self-clinging plants', () => {
   assert.equal(recommendPlants(catalog, { region: 'facade', facadeSystem: 'unavailable' }).candidates.length, 0);
   const shallow = recommendPlants(catalog, { region: 'facade', soilDepthMm: 250, irrigation: 'moderate' });
-  assert.deepEqual(shallow.candidates.map(candidate => candidate.plantId), ['ficus-pumila']);
-  assert.ok(shallow.candidates[0].checks.some(check => check.includes('wall finish')));
+  assert.deepEqual(shallow.candidates.map(candidate => candidate.plantId), ['asparagus-densiflorus-myersii', 'ficus-pumila']);
+  assert.ok(shallow.candidates.find(candidate => candidate.plantId === 'ficus-pumila').checks.some(check => check.includes('wall finish')));
 });
 
 test('explicit text inputs support bilingual units and reject ambiguous / invalid conditions', () => {

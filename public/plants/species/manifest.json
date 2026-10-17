@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-11",
+  "version": "2026-10-17",
   "author": "Building Greening project",
   "method": "Authored procedural geometry",
   "accuracy": "Concept appearance and proportions; not measured mature specimens",
@@ -26,8 +26,8 @@
     },
     "trachelospermum-jasminoides": {
       "src": "/plants/species/trachelospermum-jasminoides.glb",
-      "sha256": "79f81de762cb28a906fb9849ae9f232b159122494bf542f3da78f38615f5b2f0",
-      "bytes": 66936
+      "sha256": "661b882723fcbcbb8f9807fbed3a49ef12365c0574c6b413f9cf2dc64468e7d9",
+      "bytes": 66940
     },
     "parthenocissus-dalzielii": {
       "src": "/plants/species/parthenocissus-dalzielii.glb",
@@ -36,8 +36,33 @@
     },
     "bougainvillea-spectabilis": {
       "src": "/plants/species/bougainvillea-spectabilis.glb",
-      "sha256": "56ed3d914502398dd8c77a5f7fa39d0d7999f57f7274d4f3f2a002988d9f7bb5",
-      "bytes": 63496
+      "sha256": "99ad6ad100f82840c4b08478541cf83484aae20edef89d0c40cbcfc1a0e91bcc",
+      "bytes": 63500
+    },
+    "lantana-montevidensis": {
+      "src": "/plants/species/lantana-montevidensis.glb",
+      "sha256": "cdfae4b8711d843ec915cdcda54ba6fdbdcc430220d466fc58d572bb7f0bc5f0",
+      "bytes": 25000
+    },
+    "asparagus-densiflorus-myersii": {
+      "src": "/plants/species/asparagus-densiflorus-myersii.glb",
+      "sha256": "f28047173c3b72e7814f73149696b918ab66fb8644b654e4349b2fdc0c12f1f8",
+      "bytes": 486864
+    },
+    "zephyranthes-candida": {
+      "src": "/plants/species/zephyranthes-candida.glb",
+      "sha256": "d20deb32df19226c36e334d451d3f54517f15b276f81ef566b59cdb5a60a7b15",
+      "bytes": 31924
+    },
+    "pyrostegia-venusta": {
+      "src": "/plants/species/pyrostegia-venusta.glb",
+      "sha256": "e58614399b2e87b96b219ee76b974e758de3d51a1c7fa5eb0920d7d08aa3c38e",
+      "bytes": 67512
+    },
+    "thunbergia-grandiflora": {
+      "src": "/plants/species/thunbergia-grandiflora.glb",
+      "sha256": "f56b174f9640a87d6a64b6c801261d0c579176d8eb3adf2d6d50524dfeedc625",
+      "bytes": 58312
     }
   }
 }

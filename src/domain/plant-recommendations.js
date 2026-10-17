@@ -30,7 +30,7 @@ export function plantQuestion(question) {
 
 export function isPlantQuestion(question) {
   if (/where|哪里|哪裡|哪儿|哪兒/i.test(question)) return false;
-  return /plants?\b|species|flowers?|sedum|jasmine|植物|种什么|種什麼|花期|佛甲草|络石|絡石|季度|季节|季節/i.test(question);
+  return /plants?\b|species|flowers?|sedum|jasmine|lantana|foxtail|zephyr|pyrostegia|thunbergia|植物|种什么|種什麼|花期|佛甲草|络石|絡石|小葉馬纓丹|小叶马缨丹|狐尾天冬|蔥蓮|葱莲|玉簾|玉帘|炮仗花|大花老鴉嘴|大花老鸦嘴|季度|季节|季節/i.test(question);
 }
 
 export function normalizePlantConditions(input = {}) {

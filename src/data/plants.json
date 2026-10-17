@@ -1,8 +1,8 @@
 {
   "schemaVersion": "building-greening-plants-1",
-  "version": "2026-10-15",
+  "version": "2026-10-17",
   "region": "Hong Kong",
-  "reviewedAt": "2026-10-10",
+  "reviewedAt": "2026-10-17",
   "sourceLegend": "https://www.greening.gov.hk/filemanager/greening/en/content_97/How_to_use.pdf",
   "notes": [
     "Null means not established by the reviewed source, not intolerance.",
@@ -429,8 +429,8 @@
       "safetyNotes": null,
       "visualModel": {
         "src": "/plants/species/trachelospermum-jasminoides.glb",
-        "sha256": "79f81de762cb28a906fb9849ae9f232b159122494bf542f3da78f38615f5b2f0",
-        "bytes": 66936,
+        "sha256": "661b882723fcbcbb8f9807fbed3a49ef12365c0574c6b413f9cf2dc64468e7d9",
+        "bytes": 66940,
         "kind": "procedural-concept",
         "dimensionBasis": "Authored display proportions; not verified mature size"
       },
@@ -619,8 +619,8 @@
       "safetyNotes": null,
       "visualModel": {
         "src": "/plants/species/bougainvillea-spectabilis.glb",
-        "sha256": "56ed3d914502398dd8c77a5f7fa39d0d7999f57f7274d4f3f2a002988d9f7bb5",
-        "bytes": 63496,
+        "sha256": "99ad6ad100f82840c4b08478541cf83484aae20edef89d0c40cbcfc1a0e91bcc",
+        "bytes": 63500,
         "kind": "procedural-concept",
         "dimensionBasis": "Authored display proportions; not verified mature size"
       },
@@ -633,6 +633,439 @@
         "projectAnnualNetReductionKgCo2ePerM2": null,
         "energySavings": "project-model-required",
         "estimateId": "climber-facade-biomass-analogy-1"
+      }
+    },
+    {
+      "id": "lantana-montevidensis",
+      "scientificName": "Lantana montevidensis",
+      "commonNameZh": "小葉馬纓丹",
+      "commonNameEn": "Trailing lantana",
+      "growthForm": "trailing-groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "The guide documents intensive-roof use and modular-panel or stacked-planter vertical greening; terrace and ground are project mappings that need site review.",
+      "referenceSoilDepthMm": {
+        "min": 300,
+        "max": 450
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": null,
+        "drought": true,
+        "pollution": true,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Trailing evergreen groundcover with purple flower clusters; suitable for intensive roofs and planter-supported vertical displays.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Lantana montevidensis",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/69_Lantana_montevidensis.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "alt": "Lantana montevidensis — reference photograph",
+        "author": "Krzysztof Ziarnek, Kenraiz",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lantana_montevidensis_kz01.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Lantana_montevidensis_kz01.jpg/960px-Lantana_montevidensis_kz01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "src": "/plants/library/lantana-montevidensis.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "2720b638eedcd53ccdba4c75fa098ca8c17cb829465d2f357d8bf814bb926092",
+        "bytes": 91429
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/lantana-montevidensis.glb",
+        "sha256": "cdfae4b8711d843ec915cdcda54ba6fdbdcc430220d466fc58d572bb7f0bc5f0",
+        "bytes": 25000,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "asparagus-densiflorus-myersii",
+      "scientificName": "Asparagus densiflorus Myersii",
+      "commonNameZh": "狐尾天冬",
+      "commonNameEn": "Foxtail fern",
+      "growthForm": "fernlike-groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "The guide documents extensive and intensive roofs plus modular-panel or stacked-planter vertical greening; terrace and ground are project mappings that need site review.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": null,
+        "saltSpray": null,
+        "drought": null,
+        "pollution": null,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": null,
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Evergreen plant with upright foxtail-like plumes; documented for roofs and container-based vertical greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Asparagus densiflorus Myersii",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/63_Asparagus_densiflorus_Meyersii.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "alt": "Asparagus densiflorus Myersii — reference photograph",
+        "author": "Photo by David J. Stang",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Asparagus_densiflorus_Myersii_1zz.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Asparagus_densiflorus_Myersii_1zz.jpg/960px-Asparagus_densiflorus_Myersii_1zz.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "src": "/plants/library/asparagus-densiflorus-myersii.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "23d3f4d277f36dc6d7d3787e9cc4d0d91d619d9df00c8f1af2b112584387d845",
+        "bytes": 322175
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/asparagus-densiflorus-myersii.glb",
+        "sha256": "f28047173c3b72e7814f73149696b918ab66fb8644b654e4349b2fdc0c12f1f8",
+        "bytes": 486864,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "zephyranthes-candida",
+      "scientificName": "Zephyranthes candida",
+      "commonNameZh": "蔥蓮（玉簾）",
+      "commonNameEn": "Autumn zephyr-lily",
+      "growthForm": "bulb-groundcover",
+      "applicationRegions": [
+        "roof",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "The guide documents extensive and intensive roof applications; terrace and ground are project mappings that need site review.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": null,
+        "drought": true,
+        "pollution": null,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          8,
+          9,
+          10
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": null,
+      "description": "Evergreen bulbous groundcover with narrow leaves and white flowers; documented for extensive and intensive roofs.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Zephyranthes candida",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/78_Zephyranthes_candida.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "alt": "Zephyranthes candida — reference photograph",
+        "author": "Wee Hong",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zephyranthes_candida_(181218-1209).jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Zephyranthes_candida_%28181218-1209%29.jpg/960px-Zephyranthes_candida_%28181218-1209%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "src": "/plants/library/zephyranthes-candida.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "337da9689f61ef940a89aead67c7ea513586ace7f5f6db9afef2758e3dad8fe8",
+        "bytes": 295258
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/zephyranthes-candida.glb",
+        "sha256": "d20deb32df19226c36e334d451d3f54517f15b276f81ef566b59cdb5a60a7b15",
+        "bytes": 31924,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "pyrostegia-venusta",
+      "scientificName": "Pyrostegia venusta",
+      "commonNameZh": "炮仗花",
+      "commonNameEn": "Fire-cracker vine",
+      "growthForm": "climber",
+      "applicationRegions": [
+        "facade"
+      ],
+      "applicationBasis": "The guide documents supported facade greening with wire mesh.",
+      "referenceSoilDepthMm": {
+        "min": 450,
+        "max": 600
+      },
+      "irrigationDemand": "high",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": null,
+        "pollution": null,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          1,
+          2,
+          3
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Evergreen climber with bright orange tubular flowers; requires a supported facade system and deeper planting space.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Pyrostegia venusta",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_103/92_Pyrostegia_venusta.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "alt": "Pyrostegia venusta — reference photograph",
+        "author": "Dinkun Chen",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pyrostegia_venusta_in_China.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Pyrostegia_venusta_in_China.jpg/960px-Pyrostegia_venusta_in_China.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "src": "/plants/library/pyrostegia-venusta.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "8528df27a5d0628fff30365c26b6947b7570b79678e1ac50b4408bba61cedce0",
+        "bytes": 263749
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/pyrostegia-venusta.glb",
+        "sha256": "e58614399b2e87b96b219ee76b974e758de3d51a1c7fa5eb0920d7d08aa3c38e",
+        "bytes": 67512,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "thunbergia-grandiflora",
+      "scientificName": "Thunbergia grandiflora",
+      "commonNameZh": "大花老鴉嘴",
+      "commonNameEn": "Large-flowered thunbergia",
+      "growthForm": "climber",
+      "applicationRegions": [
+        "facade"
+      ],
+      "applicationBasis": "The guide documents facade greening with support and stacked planters.",
+      "referenceSoilDepthMm": {
+        "min": 450,
+        "max": 600
+      },
+      "irrigationDemand": "high",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": null,
+        "saltSpray": null,
+        "drought": true,
+        "pollution": null,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": null,
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Evergreen climber with large trumpet flowers; requires facade support, irrigation and deeper planting space.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Thunbergia grandiflora",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_103/94_Thunbergia_grandiflora.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "alt": "Thunbergia grandiflora — reference photograph",
+        "author": "Geographer",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Thunbergia_grandiflora_hk.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Thunbergia_grandiflora_hk.jpg/960px-Thunbergia_grandiflora_hk.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "src": "/plants/library/thunbergia-grandiflora.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided resolution; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "563ecb3c0f906bca5c7f99064e719a60e7643c0a3ef109f06062c918b9413cef",
+        "bytes": 577606
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/thunbergia-grandiflora.glb",
+        "sha256": "f56b174f9640a87d6a64b6c801261d0c579176d8eb3adf2d6d50524dfeedc625",
+        "bytes": 58312,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
       }
     }
   ]

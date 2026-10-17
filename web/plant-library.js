@@ -3,7 +3,7 @@ import { plantCarbonEvidence } from '../src/domain/plant-carbon.js';
 
 const regions = { roof: 'Roof / 屋顶', facade: 'Facade / 立面', terrace: 'Terrace / 露台', ground: 'Ground / 庭院' };
 const demand = { low: 'Low / 低', moderate: 'Moderate / 中', high: 'High / 高' };
-const forms = { 'succulent-groundcover': 'Succulent groundcover / 多肉地被', groundcover: 'Groundcover / 地被', 'grasslike-groundcover': 'Grasslike groundcover / 草状地被', climber: 'Climber / 攀爬植物' };
+const forms = { 'succulent-groundcover': 'Succulent groundcover / 多肉地被', groundcover: 'Groundcover / 地被', 'trailing-groundcover': 'Trailing groundcover / 垂生地被', 'fernlike-groundcover': 'Fernlike groundcover / 蕨状地被', 'bulb-groundcover': 'Bulb groundcover / 球根地被', 'grasslike-groundcover': 'Grasslike groundcover / 草状地被', climber: 'Climber / 攀爬植物' };
 const supports = { 'self-clinging': 'Self-clinging; review wall finish / 自攀附，需检查墙面', 'trellis-or-planter-system': 'Trellis / planter system / 支架或种植槽系统', 'self-clinging-mesh-recommended': 'Self-clinging; wire mesh recommended / 自攀附，建议网架' };
 const toleranceNames = { wind: 'Wind / 抗风', saltSpray: 'Salt spray / 耐盐雾', drought: 'Drought / 耐旱', pollution: 'Pollution / 耐污染', shade: 'Shade / 耐阴' };
 const unknown = 'To confirm / 待确认';
@@ -43,11 +43,11 @@ function carbonSection(plant) {
   if (evidence.estimate) {
     const e = evidence.estimate, range = e.annualBiomassCo2PotentialPerM2;
     block.append(factList([
-      ['年生物量吸碳潜力 · 类比估算', `${range.min.toFixed(2)}–${range.max.toFixed(2)} kg CO₂/㎡/年`],
-      ['面积口径',e.areaBasis],['参考年干物质产量',`${e.annualDryBiomassKgPerM2.min}–${e.annualDryBiomassKgPerM2.max} kg/㎡/年`],
-      ['计算方法',`干物质产量 × 假设含碳率${e.assumedCarbonFraction*100}% × 44/12`]
+      ['Annual Biomass Carbon Sequestration Potential · Analogous Estimation', `${range.min.toFixed(2)}–${range.max.toFixed(2)} kg CO₂/㎡/year`],
+      ['Area Basis',e.areaBasis],['Reference Annual Dry Matter Yield',`${e.annualDryBiomassKgPerM2.min}–${e.annualDryBiomassKgPerM2.max} kg/m²/year`],
+      ['Calculation Method',`Dry Matter Yield × Assumed Carbon Content ${e.assumedCarbonFraction*100}% × 44/12`]
     ]),node('p',e.limitations,'note'));
-    const details=node('details',undefined,'catalog-more');details.append(node('summary','估算假设与来源'));
+    const details=node('details',undefined,'catalog-more');details.append(node('summary','Estimation Assumptions and Sources'));
     for(const assumption of e.assumptions)details.append(node('p',assumption,'note'));
     for(const source of e.sources)details.append(link(source.title,source.url),node('p',source.locator,'note'));
     block.append(details);
@@ -57,17 +57,17 @@ function carbonSection(plant) {
     if (numeric !== null) {
       const annual = reference.referencePeriod === 'annualized-observation';
       block.append(factList([
-        [annual ? '研究年化净吸碳（植物＋基质）' : '研究首年碳储量增加（植物＋基质）', `${numeric.toFixed(2)} kg CO₂/㎡${annual ? '/年' : '（仅首年）'}`],
-        ['原始研究值', `${annual ? reference.netUptakeGramsCPerM2Year : reference.firstYearStockIncreaseGramsCPerM2} g C/㎡${annual ? '/年' : '（首年增量）'}`],
-        ['研究条件', reference.site],['换算方法', 'g C ÷ 1000 × 44/12 = kg CO₂']
+        [annual ? 'Study on Annualized Net Carbon Sequestration (Plants + Substrate)' : 'Study on First-Year Carbon Stock Increase (Plants + Substrate)', `${numeric.toFixed(2)} kg CO₂/㎡${annual ? '/year' : '(First Year Only)'}`],
+        ['Original Study Value', `${annual ? reference.netUptakeGramsCPerM2Year : reference.firstYearStockIncreaseGramsCPerM2} g C/㎡${annual ? '/year' : '(First-Year Increment)'}`],
+        ['Study Conditions', reference.site],['Conversion Method', 'g C ÷ 1000 × 44/12 = kg CO₂']
       ]));
     }
     const details = node('details', undefined, 'catalog-more');
-    details.append(node('summary', `研究来源与适用条件 · ${reference.year}`), node('p', reference.observation), node('p', reference.applicability, 'note'),
-      link(reference.title, reference.url), node('p', `${reference.locator ?? 'Published abstract'} · 核对 ${reference.reviewedAt}`, 'note'));
+    details.append(node('summary', `Research Sources and Applicability Conditions · ${reference.year}`), node('p', reference.observation), node('p', reference.applicability, 'note'),
+      link(reference.title, reference.url), node('p', `${reference.locator ?? 'Published abstract'} · Verify ${reference.reviewedAt}`, 'note'));
     block.append(details);
   }
-  block.append(node('p', '本项目年度净减排：尚未核定。节电效益需结合建筑、朝向和气候计算，不设每株植物固定比例。不同研究方法与条件不能直接排名；缺数据不等于零，不自动外推多年或抵扣施工排放。', 'note'));
+  block.append(node('p', 'Annual net emission reduction for this project: Not yet verified. Electricity savings must be calculated based on building, orientation, and climate; no fixed ratio per plant is applied. Different research methods and conditions cannot be directly ranked; missing data does not equal zero, and multi-year extrapolation or offsetting of construction emissions is not automatic.', 'note'));
   return block;
 }
 
@@ -120,7 +120,7 @@ export function createPlantLibrary({ catalog, onOpen, onChoose }) {
     for (let month = 1; month <= 12; month++) {
       const active = plant.seasonalInterest?.months.includes(month);
       const cell = node('span', String(month), active ? 'in-season' : '');
-      cell.title = `${month}月 · ${active ? 'Recorded ornamental interest' : 'No ornamental month recorded; not an unsuitable month'}`; months.append(cell);
+      cell.title = `${month} Month · ${active ? 'Recorded ornamental interest' : 'No ornamental month recorded; not an unsuitable month'}`; months.append(cell);
     }
     detail.append(section('Season / 季节', node('p', plantSeasonLabel(plant), 'note'), months, node('p', 'Highlighted months = ornamental interest. Planting season is unconfirmed; blank months do not mean unsuitable.', 'note')));
     detail.append(section('Water & maintenance / 水源与养护', factList([
@@ -153,7 +153,7 @@ export function createPlantLibrary({ catalog, onOpen, onChoose }) {
       button.setAttribute('aria-pressed', String(plant.id === selectedId)); button.setAttribute('aria-controls', 'catalog-detail');
       const identity = node('span', undefined, 'catalog-item-name');
       identity.append(node('strong', plant.commonNameEn), node('span', plant.commonNameZh), node('small', plant.scientificName), node('small', `${demand[plant.irrigationDemand]} water · ${plant.referenceSoilDepthMm.min}–${plant.referenceSoilDepthMm.max} mm guide soil`));
-      identity.append(node('small', `碳效益：${plantCarbonEvidence(plant).summary}`, 'catalog-carbon-status'));
+      identity.append(node('small', `Carbon Benefits:${plantCarbonEvidence(plant).summary}`, 'catalog-carbon-status'));
       button.append(referencePhoto(plant, 'catalog-thumb'), identity);
       button.addEventListener('click', () => {
         selectedId = plant.id;

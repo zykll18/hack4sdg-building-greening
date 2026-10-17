@@ -11,7 +11,7 @@ globalThis.FileReader = class {
 };
 const folder = new URL('../public/plants/species/', import.meta.url);
 await mkdir(folder, { recursive: true });
-const manifest = { version: '2026-10-11', author: 'Building Greening project', method: 'Authored procedural geometry', accuracy: 'Concept appearance and proportions; not measured mature specimens', models: {} };
+const manifest = { version: '2026-10-17', author: 'Building Greening project', method: 'Authored procedural geometry', accuracy: 'Concept appearance and proportions; not measured mature specimens', models: {} };
 for (const id of Object.keys(SPECIES_MODELS)) {
   const group = new THREE.Group(); group.name = id;
   group.userData = { plantId: id, modelKind: 'procedural-concept', dimensions: 'Authored display proportions; not verified mature size' };

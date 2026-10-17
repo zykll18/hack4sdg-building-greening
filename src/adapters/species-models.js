@@ -8,7 +8,12 @@ export const SPECIES_MODELS = {
   'ficus-pumila': { shape: 'heart', colour: '#408151', flower: null, radius: .17, height: .18, spacing: .68, leafLength: .14 },
   'trachelospermum-jasminoides': { shape: 'lance', colour: '#2d7040', flower: '#fff8e6', flowerShape: 'star', radius: .18, height: .21, spacing: .72, leafLength: .17 },
   'parthenocissus-dalzielii': { shape: 'lobed', colour: '#588c43', flower: null, radius: .21, height: .22, spacing: .8, leafLength: .19 },
-  'bougainvillea-spectabilis': { shape: 'oval', colour: '#39733f', flower: '#bd4f88', flowerShape: 'bract', radius: .26, height: .48, spacing: .86, leafLength: .16 }
+  'bougainvillea-spectabilis': { shape: 'oval', colour: '#39733f', flower: '#bd4f88', flowerShape: 'bract', radius: .26, height: .48, spacing: .86, leafLength: .16 },
+  'lantana-montevidensis': { shape: 'oval', colour: '#477a3f', flower: '#c85aa8', flowerShape: 'star', radius: .24, height: .28, spacing: .52, leafLength: .12 },
+  'asparagus-densiflorus-myersii': { shape: 'foxtail', colour: '#4e7d3d', flower: null, radius: .26, height: .42, spacing: .62, leafLength: .045 },
+  'zephyranthes-candida': { shape: 'lily', colour: '#376d43', flower: '#fffdf4', flowerShape: 'star', radius: .21, height: .34, spacing: .5, leafLength: .28 },
+  'pyrostegia-venusta': { shape: 'lance', colour: '#3f7439', flower: '#ef742a', flowerShape: 'tube', radius: .22, height: .42, spacing: .78, leafLength: .15 },
+  'thunbergia-grandiflora': { shape: 'heart', colour: '#397544', flower: '#99a7e7', flowerShape: 'trumpet', radius: .26, height: .45, spacing: .82, leafLength: .18 }
 };
 const UP = new THREE.Vector3(0,1,0);
 
@@ -25,6 +30,12 @@ export function speciesLeafGeometry(shape) {
   g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals(); return g;
 }
 export function speciesFlowerGeometry(kind = 'star') {
+  if(kind==='trumpet') {
+    const g=new THREE.ConeGeometry(.7,.95,12,1,true);g.translate(0,.475,0);return g;
+  }
+  if(kind==='tube') {
+    const g=new THREE.CylinderGeometry(.28,.48,1,8,1,true);g.translate(0,.5,0);return g;
+  }
   const positions=[], petals=kind==='bract'?3:kind==='pea'?3:5;
   for(let p=0;p<petals;p++) {
     const angle=p*2*Math.PI/petals, length=kind==='pea'&&p===0?1.2:1;
@@ -62,7 +73,44 @@ export function createSpeciesModel(plantId) {
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geometry.computeVertexNormals();
     const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:spec.colour,side:THREE.DoubleSide,roughness:.9}));mesh.name='Mondo grass curved blades';group.add(mesh);return group;
   }
-  if(['ficus-pumila','trachelospermum-jasminoides','parthenocissus-dalzielii','bougainvillea-spectabilis'].includes(plantId)) {
+  if(spec.shape==='foxtail') {
+    for(let plume=0;plume<9;plume++) {
+      const angle=plume*2.39996, lean=new THREE.Vector3(Math.cos(angle)*.1,.34+(plume%3)*.025,Math.sin(angle)*.1);
+      let previous=new THREE.Vector3(Math.cos(angle)*.025,0,Math.sin(angle)*.025);
+      for(let j=1;j<=11;j++) {
+        const t=j/11, point=lean.clone().multiplyScalar(t);point.y*=1-.13*t;
+        stem(previous,point);
+        for(let side=0;side<4;side++) {
+          const a=angle+side*Math.PI/2+j*.62, direction=new THREE.Vector3(Math.cos(a),.12,Math.sin(a));
+          addLeaf(point.clone(),direction,.026+(j%3)*.003,.32);
+        }
+        previous=point;
+      }
+    }
+    instances(group,speciesLeafGeometry('lance'),spec.colour,leaves,'Foxtail fern needle leaves');
+    instances(group,new THREE.CylinderGeometry(1,1,1,5),'#5f7d45',stems,'Foxtail fern stems');
+    return group;
+  }
+  if(spec.shape==='lily') {
+    const pos=[];
+    for(let blade=0;blade<22;blade++) {
+      const angle=blade*2.39996, length=.19+(blade%6)*.025, spread=.055+(blade%4)*.012;
+      for(let j=0;j<6;j++) {
+        const point=(t,side)=>{const width=.007*(1-t);return [Math.cos(angle)*spread*t*t-Math.sin(angle)*width*side,length*(t-.1*t*t),Math.sin(angle)*spread*t*t+Math.cos(angle)*width*side];};
+        const a=point(j/6,-1),b=point(j/6,1),c=point((j+1)/6,1),d=point((j+1)/6,-1);pos.push(...a,...b,...c,...a,...c,...d);
+      }
+    }
+    const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geometry.computeVertexNormals();
+    const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:spec.colour,side:THREE.DoubleSide,roughness:.9}));mesh.name='Zephyr lily strap leaves';group.add(mesh);
+    for(let i=0;i<4;i++) {
+      const angle=i*Math.PI/2+.35, base=new THREE.Vector3(Math.cos(angle)*.045,0,Math.sin(angle)*.045), top=base.clone().add(new THREE.Vector3(0,.25+(i%2)*.035,0));
+      stem(base,top);flowers.push({position:top,quaternion:new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),scale:new THREE.Vector3(.035,.035,.035)});
+    }
+    instances(group,new THREE.CylinderGeometry(1,1,1,5),'#4d7945',stems,'Zephyr lily flower stems');
+    instances(group,speciesFlowerGeometry('star'),spec.flower,flowers,'Zephyr lily flowers');
+    return group;
+  }
+  if(['ficus-pumila','trachelospermum-jasminoides','parthenocissus-dalzielii','bougainvillea-spectabilis','pyrostegia-venusta','thunbergia-grandiflora'].includes(plantId)) {
     for(let vine=0;vine<2;vine++) {
       let previous=new THREE.Vector3((vine-.5)*.08,0,0);
       for(let j=1;j<=12;j++) {
@@ -71,8 +119,8 @@ export function createSpeciesModel(plantId) {
         const side=j%2?1:-1;
         addLeaf(point.clone(),new THREE.Vector3(side,.35,.25),spec.leafLength);
         if(spec.flower&&j%3===0) {
-          const size=spec.flowerShape==='bract'?.055:.037;
-          flowers.push({position:point.clone().add(new THREE.Vector3(side*.15,.035,.085)),scale:new THREE.Vector3(size,size,size)});
+          const size=spec.flowerShape==='bract'?.055:spec.flowerShape==='trumpet'?.055:spec.flowerShape==='tube'?.045:.037;
+          flowers.push({position:point.clone().add(new THREE.Vector3(side*.15,.035,.085)),quaternion:new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2),scale:new THREE.Vector3(size,size,size)});
         }
         previous=point;
       }
