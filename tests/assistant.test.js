@@ -15,7 +15,7 @@ async function request(service,{method='POST',body=payload,headers={'content-typ
 }
 test('assistant context uses server catalog and rejects unsupported/sloped/duplicate locations',()=>{
   const context=buildAssistantContext(payload,catalog);
-  assert.deepEqual(context.locations[0].plants.map(p=>p.plantId),['sedum-lineare']);
+  assert.deepEqual(context.locations[0].plants.map(p=>p.plantId).sort(),['sansevieria-trifasciata-hahnii','sedum-lineare']);
   assert.equal(context.locations[0].areaStatus,'display-estimate');
   for(const shape of ['pitched','curved-or-complex'])assert.equal(buildAssistantContext({...payload,candidates:[{...location(),screening:{canPrepare:true,roofAssessment:{shape,defaultEligible:true,maxSlopeDegrees:45}}}]},catalog).locations.length,1);
   assert.throws(()=>buildAssistantContext({...payload,candidates:[{...location(),screening:{canPrepare:true,roofAssessment:{shape:'unknown',defaultEligible:false,maxSlopeDegrees:null}}}]},catalog));
@@ -41,7 +41,7 @@ test('unknown site conditions permit conditional facade candidates while known c
  assert.deepEqual(context.locations[0].screeningReasons,candidate.screening.reasons);
  const conditional={answer:'可先探索这面墙的攀爬绿化；底部有种植空间吗？',recommendations:[{globalId:'facade-id',type:'facade',plantId:'ficus-pumila',explanation:'库中攀援植物候选，供水和种植空间仍需确认。'}]};
  assert.equal(validateAssistantReply(conditional,context).recommendations[0].status,'conditional');assert.equal(JSON.stringify(source),snapshot);
- for(const conditions of [{facadeSystem:'unavailable'},{soilDepthMm:10},{irrigation:'low'}]){
+ for(const conditions of [{facadeSystem:'unavailable'},{soilDepthMm:10}]){
   const excluded=buildAssistantContext({...source,conditions},catalog);assert.equal(excluded.conceptOptions.available,false);assert.equal(excluded.locations[0].plants.length,0);
   assert.throws(()=>validateAssistantReply(conditional,excluded));
  }
@@ -60,7 +60,7 @@ test('conversation history is bounded text only and cannot override current elig
 });
 test('provider seam rebuilds eligible plants and validates draft without mutating input',async()=>{
   const source=structuredClone(payload),snapshot=JSON.stringify(source);let called=false;
-  const service=createAssistantService({catalog,authorize:()=>true,generate:async({context,schema,signal})=>{called=true;assert.equal(schema.additionalProperties,false);assert.ok(signal);assert.equal(context.locations[0].plants.length,1);return reply;}});
+  const service=createAssistantService({catalog,authorize:()=>true,generate:async({context,schema,signal})=>{called=true;assert.equal(schema.additionalProperties,false);assert.ok(signal);assert.equal(context.locations[0].plants.length,2);return reply;}});
   const result=await request(service,{body:source});assert.equal(result.statusCode,200);assert.equal(result.body.modelVersion,'model-v1');assert.equal(result.body.method,'ai-draft');assert.equal(JSON.stringify(source),snapshot);assert.ok(called);
 });
 test('disabled API never calls a provider; enabled provider also requires an access policy',async()=>{

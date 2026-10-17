@@ -51,8 +51,8 @@
     },
     "zephyranthes-candida": {
       "src": "/plants/species/zephyranthes-candida.glb",
-      "sha256": "d20deb32df19226c36e334d451d3f54517f15b276f81ef566b59cdb5a60a7b15",
-      "bytes": 31924
+      "sha256": "03fe350ec5ecdd292380ff2f62a8dd84c1df065d1c010a3a4a51c5b226ae23f7",
+      "bytes": 31908
     },
     "pyrostegia-venusta": {
       "src": "/plants/species/pyrostegia-venusta.glb",
@@ -63,6 +63,96 @@
       "src": "/plants/species/thunbergia-grandiflora.glb",
       "sha256": "f56b174f9640a87d6a64b6c801261d0c579176d8eb3adf2d6d50524dfeedc625",
       "bytes": 58312
+    },
+    "alternanthera-dentata-rubiginosa": {
+      "src": "/plants/species/alternanthera-dentata-rubiginosa.glb",
+      "sha256": "fa64e1ab7463a2af536983765dc619792872342acf9175f03862ad79b4fa6c18",
+      "bytes": 22004
+    },
+    "asparagus-densiflorus-sprengeri": {
+      "src": "/plants/species/asparagus-densiflorus-sprengeri.glb",
+      "sha256": "fb227668c57ca70c07f856ae5842a5037bcacef61e8ca6ef1c74786f9704b829",
+      "bytes": 486864
+    },
+    "calathea-makoyana": {
+      "src": "/plants/species/calathea-makoyana.glb",
+      "sha256": "22c64f043ed43837dfb23af3f87e66e8274f9106a4e7e9c130d209651af3647c",
+      "bytes": 21972
+    },
+    "catharanthus-roseus": {
+      "src": "/plants/species/catharanthus-roseus.glb",
+      "sha256": "4e4d0c1ca128d54676b96ea4fec68fbf8eec9b4e9f8c0027153d9933e325d932",
+      "bytes": 24988
+    },
+    "cuphea-hyssopifolia": {
+      "src": "/plants/species/cuphea-hyssopifolia.glb",
+      "sha256": "581f93f5e78efa0407393cc04a087abb72e6dadae0ede1bbde4017737a1dd4b0",
+      "bytes": 24988
+    },
+    "hymenocallis-littoralis": {
+      "src": "/plants/species/hymenocallis-littoralis.glb",
+      "sha256": "ac13ada4a8024eb08b49806e81def873b05e3d9a3443dfd00b580da14cc3a4d7",
+      "bytes": 31916
+    },
+    "ophiopogon-jaburan": {
+      "src": "/plants/species/ophiopogon-jaburan.glb",
+      "sha256": "63f8c1bce0d6d399d02220cb6c892fac35dd2307465c0f96db7b44c376370d3f",
+      "bytes": 29456
+    },
+    "sansevieria-trifasciata-hahnii": {
+      "src": "/plants/species/sansevieria-trifasciata-hahnii.glb",
+      "sha256": "7712a61a30e0e90c5bc131ab9bc3d41c3ceacebfee650401679db6cf0bb3183c",
+      "bytes": 20264
+    },
+    "syngonium-podophyllum-white-butterfly": {
+      "src": "/plants/species/syngonium-podophyllum-white-butterfly.glb",
+      "sha256": "ea176fd6c3722f417d3728a0c3e2738d9e84cd9db170d43bcfbe994d3d92ccba",
+      "bytes": 16836
+    },
+    "tradescantia-pallida": {
+      "src": "/plants/species/tradescantia-pallida.glb",
+      "sha256": "888730883a62688314c8c7395c7f92fe0bbceaa28563f46883c0145de3bbdfb2",
+      "bytes": 24988
+    },
+    "tradescantia-zebrina": {
+      "src": "/plants/species/tradescantia-zebrina.glb",
+      "sha256": "52677bfc2992923ddaf2830ea834bf7b72ffce573b2649d3988d595762b09d0b",
+      "bytes": 24992
+    },
+    "zephyranthes-carinata": {
+      "src": "/plants/species/zephyranthes-carinata.glb",
+      "sha256": "b893918418bad8f12f24da76cf0baa47658bef6bd1d2e1f5bdcd1e245b858b8b",
+      "bytes": 31932
+    },
+    "antigonon-leptopus": {
+      "src": "/plants/species/antigonon-leptopus.glb",
+      "sha256": "81cb489dab81e3bdddf4e681a1b7e884b03534a09d557bb62157db9d68e52efd",
+      "bytes": 56572
+    },
+    "campsis-grandiflora": {
+      "src": "/plants/species/campsis-grandiflora.glb",
+      "sha256": "84e1242c776215824b4186623655199c6df96af5f0dcea7f33d1ff110fce20b2",
+      "bytes": 65208
+    },
+    "epipremnum-aureum": {
+      "src": "/plants/species/epipremnum-aureum.glb",
+      "sha256": "9b2f1a904d970bff0f715b3dcd7ad1cf34d32b6fd92c20849d0d0a73aaf4c534",
+      "bytes": 50536
+    },
+    "lonicera-japonica": {
+      "src": "/plants/species/lonicera-japonica.glb",
+      "sha256": "381290aa3fc8438881072083538da2b7b1bd9c5d2da49fe245583acb2939d638",
+      "bytes": 67512
+    },
+    "quisqualis-indica": {
+      "src": "/plants/species/quisqualis-indica.glb",
+      "sha256": "73481fe3281f23a7faf11c0ec9e2f2cd2b1789f5d8d20f40f4a65c1b1f54c091",
+      "bytes": 67508
+    },
+    "tristellateia-australasiae": {
+      "src": "/plants/species/tristellateia-australasiae.glb",
+      "sha256": "2e0be9c1b34f2cc9545953688bdc76aee415d686538ad2718839ff7569ac364f",
+      "bytes": 66956
     }
   }
 }

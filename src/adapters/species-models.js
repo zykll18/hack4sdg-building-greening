@@ -14,6 +14,24 @@ export const SPECIES_MODELS = {
   'zephyranthes-candida': { shape: 'lily', colour: '#376d43', flower: '#fffdf4', flowerShape: 'star', radius: .21, height: .34, spacing: .5, leafLength: .28 },
   'pyrostegia-venusta': { shape: 'lance', colour: '#3f7439', flower: '#ef742a', flowerShape: 'tube', radius: .22, height: .42, spacing: .78, leafLength: .15 },
   'thunbergia-grandiflora': { shape: 'heart', colour: '#397544', flower: '#99a7e7', flowerShape: 'trumpet', radius: .26, height: .45, spacing: .82, leafLength: .18 }
+  ,'alternanthera-dentata-rubiginosa': { shape: 'oval', colour: '#6f2949', flower: null, radius: .22, height: .25, spacing: .48, leafLength: .13 }
+  ,'asparagus-densiflorus-sprengeri': { shape: 'foxtail', colour: '#669348', flower: null, radius: .30, height: .36, spacing: .65, leafLength: .045 }
+  ,'calathea-makoyana': { shape: 'oval', colour: '#6f9168', flower: null, radius: .30, height: .38, spacing: .58, leafLength: .21 }
+  ,'catharanthus-roseus': { shape: 'oval', colour: '#3f7d49', flower: '#f5d9e9', flowerShape: 'star', radius: .22, height: .30, spacing: .49, leafLength: .12 }
+  ,'cuphea-hyssopifolia': { shape: 'lance', colour: '#456f3b', flower: '#9d5aba', flowerShape: 'star', radius: .24, height: .27, spacing: .46, leafLength: .09 }
+  ,'hymenocallis-littoralis': { shape: 'lily', colour: '#3c7344', flower: '#fffef5', flowerShape: 'star', radius: .28, height: .44, spacing: .61, leafLength: .34 }
+  ,'ophiopogon-jaburan': { shape: 'grass', colour: '#55745c', flower: null, radius: .25, height: .36, spacing: .56, leafLength: .32 }
+  ,'sansevieria-trifasciata-hahnii': { shape: 'lily', colour: '#668b43', flower: null, radius: .24, height: .30, spacing: .52, leafLength: .25 }
+  ,'syngonium-podophyllum-white-butterfly': { shape: 'heart', colour: '#9eaf83', flower: null, radius: .27, height: .32, spacing: .57, leafLength: .20 }
+  ,'tradescantia-pallida': { shape: 'lance', colour: '#633a70', flower: '#d99bc8', flowerShape: 'star', radius: .23, height: .20, spacing: .43, leafLength: .16 }
+  ,'tradescantia-zebrina': { shape: 'lance', colour: '#6f5784', flower: '#d99ac3', flowerShape: 'star', radius: .24, height: .19, spacing: .44, leafLength: .17 }
+  ,'zephyranthes-carinata': { shape: 'lily', colour: '#3d7648', flower: '#e8a2c6', flowerShape: 'star', radius: .22, height: .35, spacing: .51, leafLength: .29 }
+  ,'antigonon-leptopus': { shape: 'heart', colour: '#477a43', flower: '#dc73a0', flowerShape: 'pea', radius: .24, height: .47, spacing: .84, leafLength: .17 }
+  ,'campsis-grandiflora': { shape: 'lance', colour: '#3f7440', flower: '#e6753c', flowerShape: 'trumpet', radius: .25, height: .50, spacing: .86, leafLength: .17 }
+  ,'epipremnum-aureum': { shape: 'heart', colour: '#7fa34e', flower: null, radius: .27, height: .42, spacing: .80, leafLength: .22 }
+  ,'lonicera-japonica': { shape: 'oval', colour: '#4f7f45', flower: '#f6f0c6', flowerShape: 'tube', radius: .22, height: .45, spacing: .76, leafLength: .14 }
+  ,'quisqualis-indica': { shape: 'oval', colour: '#477640', flower: '#d96a7f', flowerShape: 'tube', radius: .26, height: .49, spacing: .85, leafLength: .16 }
+  ,'tristellateia-australasiae': { shape: 'oval', colour: '#4b7843', flower: '#edc547', flowerShape: 'star', radius: .25, height: .46, spacing: .81, leafLength: .15 }
 };
 const UP = new THREE.Vector3(0,1,0);
 
@@ -102,15 +120,17 @@ export function createSpeciesModel(plantId) {
     }
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geometry.computeVertexNormals();
     const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:spec.colour,side:THREE.DoubleSide,roughness:.9}));mesh.name='Zephyr lily strap leaves';group.add(mesh);
-    for(let i=0;i<4;i++) {
-      const angle=i*Math.PI/2+.35, base=new THREE.Vector3(Math.cos(angle)*.045,0,Math.sin(angle)*.045), top=base.clone().add(new THREE.Vector3(0,.25+(i%2)*.035,0));
-      stem(base,top);flowers.push({position:top,quaternion:new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),scale:new THREE.Vector3(.035,.035,.035)});
+    if(spec.flower) {
+      for(let i=0;i<4;i++) {
+        const angle=i*Math.PI/2+.35, base=new THREE.Vector3(Math.cos(angle)*.045,0,Math.sin(angle)*.045), top=base.clone().add(new THREE.Vector3(0,.25+(i%2)*.035,0));
+        stem(base,top);flowers.push({position:top,quaternion:new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2),scale:new THREE.Vector3(.035,.035,.035)});
+      }
+      instances(group,new THREE.CylinderGeometry(1,1,1,5),'#4d7945',stems,'Lily flower stems');
+      instances(group,speciesFlowerGeometry('star'),spec.flower,flowers,'Lily flowers');
     }
-    instances(group,new THREE.CylinderGeometry(1,1,1,5),'#4d7945',stems,'Zephyr lily flower stems');
-    instances(group,speciesFlowerGeometry('star'),spec.flower,flowers,'Zephyr lily flowers');
     return group;
   }
-  if(['ficus-pumila','trachelospermum-jasminoides','parthenocissus-dalzielii','bougainvillea-spectabilis','pyrostegia-venusta','thunbergia-grandiflora'].includes(plantId)) {
+  if(['ficus-pumila','trachelospermum-jasminoides','parthenocissus-dalzielii','bougainvillea-spectabilis','pyrostegia-venusta','thunbergia-grandiflora','antigonon-leptopus','campsis-grandiflora','epipremnum-aureum','lonicera-japonica','quisqualis-indica','tristellateia-australasiae'].includes(plantId)) {
     for(let vine=0;vine<2;vine++) {
       let previous=new THREE.Vector3((vine-.5)*.08,0,0);
       for(let j=1;j<=12;j++) {

@@ -6,7 +6,7 @@ import { PLANT_CARBON_SOURCES } from '../src/data/plant-carbon-evidence.js';
 const catalog=JSON.parse(readFileSync(new URL('../src/data/plants.json',import.meta.url)));
 const plant=id=>catalog.plants.find(item=>item.id===id);
 test('every catalog species records carbon evidence, sources and unknown project coefficients without conflating missing with zero',()=>{
-  assert.equal(catalog.plants.length,12);
+  assert.equal(catalog.plants.length,30);
   for(const item of catalog.plants) {
     assert.equal(item.carbonEvidence.projectAnnualNetReductionKgCo2ePerM2,null);
     const result=plantCarbonEvidence(item);

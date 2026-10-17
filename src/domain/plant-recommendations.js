@@ -30,7 +30,7 @@ export function plantQuestion(question) {
 
 export function isPlantQuestion(question) {
   if (/where|哪里|哪裡|哪儿|哪兒/i.test(question)) return false;
-  return /plants?\b|species|flowers?|sedum|jasmine|lantana|foxtail|zephyr|pyrostegia|thunbergia|植物|种什么|種什麼|花期|佛甲草|络石|絡石|小葉馬纓丹|小叶马缨丹|狐尾天冬|蔥蓮|葱莲|玉簾|玉帘|炮仗花|大花老鴉嘴|大花老鸦嘴|季度|季节|季節/i.test(question);
+  return /plants?\b|species|flowers?|sedum|jasmine|lantana|foxtail|zephyr|pyrostegia|thunbergia|alternanthera|asparagus|calathea|catharanthus|cuphea|hymenocallis|ophiopogon|sansevieria|syngonium|tradescantia|antigonon|campsis|epipremnum|lonicera|quisqualis|tristellateia|植物|种什么|種什麼|花期|佛甲草|络石|絡石|小葉馬纓丹|小叶马缨丹|狐尾天冬|蔥蓮|葱莲|玉簾|玉帘|炮仗花|大花老鴉嘴|大花老鸦嘴|红龙莧|紅龍莧|长春花|長春花|孔雀竹芋|细叶萼距花|細葉萼距花|水鬼蕉|虎尾兰|虎尾蘭|吊竹梅|珊瑚藤|凌霄|绿萝|綠蘿|忍冬|金银花|金銀花|使君子|三星果|季度|季节|季節/i.test(question);
 }
 
 export function normalizePlantConditions(input = {}) {

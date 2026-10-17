@@ -10,7 +10,7 @@ import { normalizePlantingSelection, plantingProfile } from '../src/domain/plant
 import { calculatePlan, PLANS } from '../src/domain/greening-plan.js';
 const catalog = JSON.parse(readFileSync(new URL('../src/data/plants.json', import.meta.url)));
 
-test('all twelve catalog species have finite, distinct concept models and self-contained GLBs', () => {
+test('all thirty catalog species have finite, distinct concept models and self-contained GLBs', () => {
   const manifest=JSON.parse(readFileSync(new URL('../public/plants/species/manifest.json',import.meta.url)));
   assert.deepEqual(Object.keys(SPECIES_MODELS).sort(),catalog.plants.map(p=>p.id).sort());
   const hashes=new Set();
@@ -24,7 +24,7 @@ test('all twelve catalog species have finite, distinct concept models and self-c
     const json=JSON.parse(file.subarray(20,20+file.readUInt32LE(12)).toString());assert.ok(json.meshes.length);assert.ok(json.buffers.every(b=>!b.uri));assert.equal(json.nodes.find(n=>n.extras?.plantId)?.extras.plantId,plant.id);
     disposeSpeciesModel(model);
   }
-  assert.equal(hashes.size,12);
+  assert.equal(hashes.size,30);
 });
 
 test('species assignment rejects wrong location, unknown identity and invalid density/coverage',()=>{
@@ -72,11 +72,11 @@ test('chosen coverage uses one fraction in visuals/calculations; species and den
   }
 });
 
-test('all six climbing species stop stems at facade openings',()=>{
+test('all twelve climbing species stop stems at facade openings',()=>{
   const a=groundSurface({x:-2,y:0,z:0,width:2,depth:6}),b=groundSurface({x:2,y:0,z:0,width:2,depth:6});
   const positions=new Float32Array([...a.triangles,...b.triangles].flatMap(t=>t.points.flat()));
   for(let i=0;i<positions.length;i+=3){positions[i+1]=positions[i+2]+3;positions[i+2]=0;}
-  for(const plantId of ['ficus-pumila','trachelospermum-jasminoides','parthenocissus-dalzielii','bougainvillea-spectabilis','pyrostegia-venusta','thunbergia-grandiflora']) {
+  for(const plantId of ['ficus-pumila','trachelospermum-jasminoides','parthenocissus-dalzielii','bougainvillea-spectabilis','pyrostegia-venusta','thunbergia-grandiflora','antigonon-leptopus','campsis-grandiflora','epipremnum-aureum','lonicera-japonica','quisqualis-indica','tristellateia-australasiae']) {
     const group=createPlantingVisual({positions,type:'facade',planId:'light',seed:'holes',planting:{plantId,density:1}}),stems=group.children.find(m=>m.name==='Climbing vine stems');assert.ok(stems?.count>0);
     for(let i=0;i<stems.count;i++){const matrix=new THREE.Matrix4();stems.getMatrixAt(i,matrix);for(const y of [-.5,0,.5])assert.ok(Math.abs(new THREE.Vector3(0,y,0).applyMatrix4(matrix).x)>=1-1e-6);}
     disposeSpeciesModel(group);

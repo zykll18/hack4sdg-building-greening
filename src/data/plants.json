@@ -1,6 +1,6 @@
 {
   "schemaVersion": "building-greening-plants-1",
-  "version": "2026-10-17",
+  "version": "2026-10-17-30-species",
   "region": "Hong Kong",
   "reviewedAt": "2026-10-17",
   "sourceLegend": "https://www.greening.gov.hk/filemanager/greening/en/content_97/How_to_use.pdf",
@@ -890,8 +890,8 @@
       "safetyNotes": null,
       "visualModel": {
         "src": "/plants/species/zephyranthes-candida.glb",
-        "sha256": "d20deb32df19226c36e334d451d3f54517f15b276f81ef566b59cdb5a60a7b15",
-        "bytes": 31924,
+        "sha256": "03fe350ec5ecdd292380ff2f62a8dd84c1df065d1c010a3a4a51c5b226ae23f7",
+        "bytes": 31908,
         "kind": "procedural-concept",
         "dimensionBasis": "Authored display proportions; not verified mature size"
       },
@@ -1057,6 +1057,1658 @@
         "src": "/plants/species/thunbergia-grandiflora.glb",
         "sha256": "f56b174f9640a87d6a64b6c801261d0c579176d8eb3adf2d6d50524dfeedc625",
         "bytes": 58312,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "alternanthera-dentata-rubiginosa",
+      "scientificName": "Alternanthera dentata f. rubiginosa",
+      "commonNameZh": "红龙莧",
+      "commonNameEn": "Joyweed",
+      "growthForm": "groundcover",
+      "applicationRegions": [
+        "roof",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide application icons; terrace and ground suitability are project planning mappings requiring site review.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": true,
+        "pollution": null,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "leaf",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": null,
+      "description": "Purple-leaved evergreen groundcover recorded for extensive and intensive roof greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Alternanthera dentata f. rubiginosa",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/55_Alternanthera_dentata_f_rubiginosa.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/alternanthera-dentata-rubiginosa.jpg",
+        "alt": "Alternanthera dentata f. rubiginosa — reference photograph",
+        "author": "Mokkie",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alternanthera_dentata_%27Brazilian_Red_Hots%27.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ac/Alternanthera_dentata_%27Brazilian_Red_Hots%27.jpg/1280px-Alternanthera_dentata_%27Brazilian_Red_Hots%27.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "e8de5bc39835fc1df3de64f2470ff8ab74d9fa191a6b00b5772a2fd6ab1df7ba",
+        "bytes": 233522
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/alternanthera-dentata-rubiginosa.glb",
+        "sha256": "fa64e1ab7463a2af536983765dc619792872342acf9175f03862ad79b4fa6c18",
+        "bytes": 22004,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "asparagus-densiflorus-sprengeri",
+      "scientificName": "Asparagus densiflorus cv. Sprengeri",
+      "commonNameZh": "非洲天门冬",
+      "commonNameEn": "Sprenger's asparagus",
+      "growthForm": "fernlike-groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": null,
+        "drought": null,
+        "pollution": true,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "leaf",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Arching evergreen groundcover recorded for roofs and vertical greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Asparagus densiflorus cv. Sprengeri",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/62_Asparagus_densiflorus_cv_Sprengeri.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/asparagus-densiflorus-sprengeri.jpg",
+        "alt": "Asparagus densiflorus cv. Sprengeri — reference photograph",
+        "author": "Jim Evans",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Asparagus_Fern_--_asparagus_densiflorus_%27sprengeri%27.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Asparagus_Fern_--_asparagus_densiflorus_%27sprengeri%27.jpg/1280px-Asparagus_Fern_--_asparagus_densiflorus_%27sprengeri%27.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "082b277b4c2a616f47bceb9a11225480e26537008609bfbb0bdfb04e523d30aa",
+        "bytes": 457530
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/asparagus-densiflorus-sprengeri.glb",
+        "sha256": "fb227668c57ca70c07f856ae5842a5037bcacef61e8ca6ef1c74786f9704b829",
+        "bytes": 486864,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "calathea-makoyana",
+      "scientificName": "Calathea makoyana",
+      "commonNameZh": "孔雀竹芋",
+      "commonNameEn": "Peacock plant",
+      "growthForm": "groundcover",
+      "applicationRegions": [
+        "roof",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide application icons; terrace and ground suitability are project planning mappings requiring site review.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "low",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": null,
+        "saltSpray": null,
+        "drought": null,
+        "pollution": null,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": null,
+      "plantingMonths": null,
+      "facadeSupport": null,
+      "description": "Shade-tolerant foliage groundcover recorded in Hong Kong podium gardens.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Calathea makoyana",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/64_Calathea_makoyana.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/calathea-makoyana.jpg",
+        "alt": "Calathea makoyana — reference photograph",
+        "author": "N. Teerink",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Calathea_makoyana_(Marantaceae).jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Calathea_makoyana_%28Marantaceae%29.jpg/1280px-Calathea_makoyana_%28Marantaceae%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "771f38384b27d66253b7d4c2967f8bac665c2f0c5dd2a1e47113bd510f8ee52a",
+        "bytes": 258299
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/calathea-makoyana.glb",
+        "sha256": "22c64f043ed43837dfb23af3f87e66e8274f9106a4e7e9c130d209651af3647c",
+        "bytes": 21972,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "catharanthus-roseus",
+      "scientificName": "Catharanthus roseus",
+      "commonNameZh": "长春花",
+      "commonNameEn": "Periwinkle",
+      "growthForm": "groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": null,
+        "saltSpray": null,
+        "drought": true,
+        "pollution": null,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Evergreen flowering groundcover recorded for roofs and vertical greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Catharanthus roseus",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/65_Catharanthus_roseus.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/catharanthus-roseus.jpg",
+        "alt": "Catharanthus roseus — reference photograph",
+        "author": "Vengolis",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Catharanthus_roseus_01450.JPG",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Catharanthus_roseus_01450.JPG/1280px-Catharanthus_roseus_01450.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "5fffafb69ed4c21a6774f7fb3df0307857a81cb70861482bcf616f5879207698",
+        "bytes": 153877
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/catharanthus-roseus.glb",
+        "sha256": "4e4d0c1ca128d54676b96ea4fec68fbf8eec9b4e9f8c0027153d9933e325d932",
+        "bytes": 24988,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "cuphea-hyssopifolia",
+      "scientificName": "Cuphea hyssopifolia",
+      "commonNameZh": "细叶萼距花",
+      "commonNameEn": "False heather",
+      "growthForm": "groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": null,
+        "saltSpray": null,
+        "drought": null,
+        "pollution": null,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Fine-leaved evergreen groundcover with long seasonal flower interest.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Cuphea hyssopifolia",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/66_Cuphea_hyssopifolia.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/cuphea-hyssopifolia.jpg",
+        "alt": "Cuphea hyssopifolia — reference photograph",
+        "author": "Anup Sadi",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cuphea_hyssopifolia_(11).jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/Cuphea_hyssopifolia_%2811%29.jpg/1280px-Cuphea_hyssopifolia_%2811%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "9e76805a87f60ea0ba4bcd1487cb95f73573dd7fb947298b86f33376fb8ae02d",
+        "bytes": 570652
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/cuphea-hyssopifolia.glb",
+        "sha256": "581f93f5e78efa0407393cc04a087abb72e6dadae0ede1bbde4017737a1dd4b0",
+        "bytes": 24988,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "hymenocallis-littoralis",
+      "scientificName": "Hymenocallis littoralis",
+      "commonNameZh": "水鬼蕉（蜘蛛兰）",
+      "commonNameEn": "Spider lily",
+      "growthForm": "bulb-groundcover",
+      "applicationRegions": [
+        "roof",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide application icons; terrace and ground suitability are project planning mappings requiring site review.",
+      "referenceSoilDepthMm": {
+        "min": 300,
+        "max": 450
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "low",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": null,
+        "drought": null,
+        "pollution": true,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          5,
+          6,
+          7
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": null,
+      "description": "Strap-leaved evergreen with white spider-like flowers, recorded for intensive roofs.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Hymenocallis littoralis",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/68_Hymenocallis_littoralis.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/hymenocallis-littoralis.jpg",
+        "alt": "Hymenocallis littoralis — reference photograph",
+        "author": "Kaushlendrapathe",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Beach_Spider_Lily_(Hymenocallis_littoralis)_at_Malviya_Udyan_Vidisha.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/77/Beach_Spider_Lily_%28Hymenocallis_littoralis%29_at_Malviya_Udyan_Vidisha.jpg/1280px-Beach_Spider_Lily_%28Hymenocallis_littoralis%29_at_Malviya_Udyan_Vidisha.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC0",
+        "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "cf9f703468f3d94844728146f16f4f38905a6806efa8d97979ab3f1b06b48fbe",
+        "bytes": 363366
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/hymenocallis-littoralis.glb",
+        "sha256": "ac13ada4a8024eb08b49806e81def873b05e3d9a3443dfd00b580da14cc3a4d7",
+        "bytes": 31916,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "ophiopogon-jaburan",
+      "scientificName": "Ophiopogon jaburan",
+      "commonNameZh": "花叶沿阶草",
+      "commonNameEn": "Jaburan lily-turf",
+      "growthForm": "grasslike-groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "low",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": null,
+        "saltSpray": null,
+        "drought": true,
+        "pollution": true,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": null,
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Variegated evergreen lily-turf recorded for roofs and vertical greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Ophiopogon jaburan",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/70_Ophiopogon_jaburan.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/ophiopogon-jaburan.jpg",
+        "alt": "Ophiopogon jaburan — reference photograph",
+        "author": "Rudolphous",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:20210623_Hortus_botanicus_Leiden_-_Ophiopogon_jaburan.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/20210623_Hortus_botanicus_Leiden_-_Ophiopogon_jaburan.jpg/1280px-20210623_Hortus_botanicus_Leiden_-_Ophiopogon_jaburan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "f760931ff973bb6d7a4847b934933eacc4ee93bb1688aadd6aa02885cc80e5b1",
+        "bytes": 505742
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/ophiopogon-jaburan.glb",
+        "sha256": "63f8c1bce0d6d399d02220cb6c892fac35dd2307465c0f96db7b44c376370d3f",
+        "bytes": 29456,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "sansevieria-trifasciata-hahnii",
+      "scientificName": "Sansevieria trifasciata 'Hahnii'",
+      "commonNameZh": "短叶虎尾兰",
+      "commonNameEn": "Bird's nest snake plant",
+      "growthForm": "groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 100,
+        "max": 200
+      },
+      "irrigationDemand": "low",
+      "pruningDemand": "low",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": true,
+        "pollution": true,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "leaf",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Compact rosette-form evergreen with broad environmental tolerances recorded in the guide.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Sansevieria trifasciata 'Hahnii'",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/72_Sansevieria_trifasciata_Hahnii.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/sansevieria-trifasciata-hahnii.jpg",
+        "alt": "Sansevieria trifasciata 'Hahnii' — reference photograph",
+        "author": "Slyronit",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bird%E2%80%99s_Nest_Snake_Plant_(Sansevieria_trifasciata_hahnii).jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Bird%E2%80%99s_Nest_Snake_Plant_%28Sansevieria_trifasciata_hahnii%29.jpg/1280px-Bird%E2%80%99s_Nest_Snake_Plant_%28Sansevieria_trifasciata_hahnii%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "146f0ebe76961a41844b3315ec37fe2287613d2b6c2835486a6a6e2c25b682b6",
+        "bytes": 242722
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/sansevieria-trifasciata-hahnii.glb",
+        "sha256": "7712a61a30e0e90c5bc131ab9bc3d41c3ceacebfee650401679db6cf0bb3183c",
+        "bytes": 20264,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "syngonium-podophyllum-white-butterfly",
+      "scientificName": "Syngonium podophyllum 'White Butterfly'",
+      "commonNameZh": "白蝴蝶",
+      "commonNameEn": "Arrowhead vine",
+      "growthForm": "groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": null,
+        "pollution": null,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "leaf",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Pale arrow-shaped foliage plant recorded for roofs, podiums and vertical systems.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Syngonium podophyllum 'White Butterfly'",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/73_Syngonium_podophyllum_White_Butterfly.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/syngonium-podophyllum-white-butterfly.jpg",
+        "alt": "Syngonium podophyllum 'White Butterfly' — reference photograph",
+        "author": "Photo by David J. Stang",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Syngonium_podophyllum_Albolineatum_1zz.jpg",
+        "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Syngonium_podophyllum_Albolineatum_1zz.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "4c90afade0944c882a9032cdf7377db4e278c4026c6418bf4997271e95d1a64e",
+        "bytes": 137908
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/syngonium-podophyllum-white-butterfly.glb",
+        "sha256": "ea176fd6c3722f417d3728a0c3e2738d9e84cd9db170d43bcfbe994d3d92ccba",
+        "bytes": 16836,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "tradescantia-pallida",
+      "scientificName": "Tradescantia pallida",
+      "commonNameZh": "紫鸭跖草",
+      "commonNameEn": "Purple heart",
+      "growthForm": "trailing-groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 100,
+        "max": 200
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": true,
+        "pollution": true,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "leaf",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Purple trailing evergreen groundcover recorded across roof and vertical applications.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Tradescantia pallida",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/74_Tradescantia_pallida.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/tradescantia-pallida.jpg",
+        "alt": "Tradescantia pallida — reference photograph",
+        "author": "Michael Rivera",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Coastal_Georgia_Botanical_Gardens,_Purple_Heart_Tradescantia_pallida_%27Purpurea%27.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/Coastal_Georgia_Botanical_Gardens%2C_Purple_Heart_Tradescantia_pallida_%27Purpurea%27.jpg/1280px-Coastal_Georgia_Botanical_Gardens%2C_Purple_Heart_Tradescantia_pallida_%27Purpurea%27.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "4e2ffc9dd4f6e5eb734733de40dda6138f4acc0f1a840d9aab3f0e1dbdf7de2b",
+        "bytes": 613662
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/tradescantia-pallida.glb",
+        "sha256": "888730883a62688314c8c7395c7f92fe0bbceaa28563f46883c0145de3bbdfb2",
+        "bytes": 24988,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "tradescantia-zebrina",
+      "scientificName": "Tradescantia zebrina",
+      "commonNameZh": "吊竹梅（水竹草）",
+      "commonNameEn": "Wandering jew zebrina",
+      "growthForm": "trailing-groundcover",
+      "applicationRegions": [
+        "roof",
+        "facade",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 100,
+        "max": 200
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": null,
+        "pollution": null,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "leaf",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Striped trailing evergreen groundcover recorded for roofs and vertical greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Tradescantia zebrina",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/77_Tradescantia_zebrina.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/tradescantia-zebrina.jpg",
+        "alt": "Tradescantia zebrina — reference photograph",
+        "author": "Flocci Nivis",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:20260317_Tradescantia_zebrina_01.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/20260317_Tradescantia_zebrina_01.jpg/1280px-20260317_Tradescantia_zebrina_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "a16bdc1f0e45d6bcac45bef1078193f8adfe6cdaa74aefccc16823578914ea36",
+        "bytes": 416494
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/tradescantia-zebrina.glb",
+        "sha256": "52677bfc2992923ddaf2830ea834bf7b72ffce573b2649d3988d595762b09d0b",
+        "bytes": 24992,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "zephyranthes-carinata",
+      "scientificName": "Zephyranthes carinata",
+      "commonNameZh": "韭莲（风雨花）",
+      "commonNameEn": "Rose-pink zephyr lily",
+      "growthForm": "bulb-groundcover",
+      "applicationRegions": [
+        "roof",
+        "terrace",
+        "ground"
+      ],
+      "applicationBasis": "Hong Kong guide application icons; terrace and ground suitability are project planning mappings requiring site review.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "low",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": null,
+        "drought": true,
+        "pollution": null,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": null,
+      "description": "Pink-flowered bulb groundcover recorded for roof and podium planting.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Zephyranthes carinata",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_102/79_Zephyranthes_carinata.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/zephyranthes-carinata.jpg",
+        "alt": "Zephyranthes carinata — reference photograph",
+        "author": "Subhrajyoti07",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:A_pair_of_beautiful_rosepink_zephyr_lily_or_pink_rain_lily_in_full_bloom_-_Zephyranthes_carinata.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/A_pair_of_beautiful_rosepink_zephyr_lily_or_pink_rain_lily_in_full_bloom_-_Zephyranthes_carinata.jpg/1280px-A_pair_of_beautiful_rosepink_zephyr_lily_or_pink_rain_lily_in_full_bloom_-_Zephyranthes_carinata.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "d2583dd5c6428600466b14a96de3b0c82b632473900ef80e9e61a6ec7206c3e9",
+        "bytes": 284426
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/zephyranthes-carinata.glb",
+        "sha256": "b893918418bad8f12f24da76cf0baa47658bef6bd1d2e1f5bdcd1e245b858b8b",
+        "bytes": 31932,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "antigonon-leptopus",
+      "scientificName": "Antigonon leptopus",
+      "commonNameZh": "珊瑚藤",
+      "commonNameEn": "Honolulu vine",
+      "growthForm": "climber",
+      "applicationRegions": [
+        "facade"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 450,
+        "max": 600
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "low",
+      "nativeToHongKong": false,
+      "evergreen": false,
+      "tolerances": {
+        "wind": null,
+        "saltSpray": null,
+        "drought": true,
+        "pollution": true,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Deciduous flowering climber requiring a support or stacked planter system.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Antigonon leptopus",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_103/80_Antigonon_leptopus.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/antigonon-leptopus.jpg",
+        "alt": "Antigonon leptopus — reference photograph",
+        "author": "J.M.Garg",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Antigonon_leptopus_(Coral_Vine)_in_Gandipet,_Hyderabad,_AP_W2_IMG_9084.jpg",
+        "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Antigonon_leptopus_%28Coral_Vine%29_in_Gandipet%2C_Hyderabad%2C_AP_W2_IMG_9084.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "00e492fe0aac9e5b971099f66000f76f581818846147f806d2df5651cea75bf0",
+        "bytes": 82528
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/antigonon-leptopus.glb",
+        "sha256": "81cb489dab81e3bdddf4e681a1b7e884b03534a09d557bb62157db9d68e52efd",
+        "bytes": 56572,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "campsis-grandiflora",
+      "scientificName": "Campsis grandiflora",
+      "commonNameZh": "凌霄",
+      "commonNameEn": "Chinese trumpet-creeper",
+      "growthForm": "climber",
+      "applicationRegions": [
+        "facade"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 450,
+        "max": 600
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": false,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": null,
+        "pollution": null,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Deciduous trumpet-flowered climber recorded for self-clinging and supported vertical greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Campsis grandiflora",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_103/83_Campsis_grandiflora.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/campsis-grandiflora.jpg",
+        "alt": "Campsis grandiflora — reference photograph",
+        "author": "Wikimedia Commons contributor",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:CampsisGrandiflora.jpg",
+        "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7a/CampsisGrandiflora.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+        "license": "CC BY-SA 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "4b9b4389dd2dd5aec9c3b27ef227b2e5bf62a238696dc09a510ac0245a7a3393",
+        "bytes": 98800
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/campsis-grandiflora.glb",
+        "sha256": "84e1242c776215824b4186623655199c6df96af5f0dcea7f33d1ff110fce20b2",
+        "bytes": 65208,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "epipremnum-aureum",
+      "scientificName": "Epipremnum aureum",
+      "commonNameZh": "绿萝（芋叶藤）",
+      "commonNameEn": "Ivy-arum",
+      "growthForm": "climber",
+      "applicationRegions": [
+        "facade"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 200,
+        "max": 300
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": null,
+        "saltSpray": null,
+        "drought": null,
+        "pollution": true,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "leaf",
+        "months": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Shade-tolerant evergreen foliage climber recorded for vertical greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Epipremnum aureum",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_103/84_Epipremnum_aureum.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/epipremnum-aureum.jpg",
+        "alt": "Epipremnum aureum — reference photograph",
+        "author": "ZooFari",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Epipremnum_aureum_vine.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f0/Epipremnum_aureum_vine.jpg/1280px-Epipremnum_aureum_vine.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "f27759485d9470c5faddf99baec7c0227a04dac34d2c239f851c5a130f403ec8",
+        "bytes": 121596
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/epipremnum-aureum.glb",
+        "sha256": "9b2f1a904d970bff0f715b3dcd7ad1cf34d32b6fd92c20849d0d0a73aaf4c534",
+        "bytes": 50536,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "lonicera-japonica",
+      "scientificName": "Lonicera japonica",
+      "commonNameZh": "忍冬（金银花）",
+      "commonNameEn": "Honeysuckle",
+      "growthForm": "climber",
+      "applicationRegions": [
+        "facade"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 450,
+        "max": 600
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": true,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": null,
+        "drought": true,
+        "pollution": null,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          4,
+          5,
+          6
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Hong Kong native evergreen honeysuckle for supported facade planting.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Lonicera japonica",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_103/86_Lonicera_japonica.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/lonicera-japonica.jpg",
+        "alt": "Lonicera japonica — reference photograph",
+        "author": "George E. Koronaios",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Japanese_Honeysuckle_(Lonicera_Japonica)_in_Athens_on_May_17,_2023.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Japanese_Honeysuckle_%28Lonicera_Japonica%29_in_Athens_on_May_17%2C_2023.jpg/1280px-Japanese_Honeysuckle_%28Lonicera_Japonica%29_in_Athens_on_May_17%2C_2023.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "4b3bc47ffc17e7ee0330d354e8148e97fa3dcd1fd5227c2eea3a1a67783be861",
+        "bytes": 314026
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/lonicera-japonica.glb",
+        "sha256": "381290aa3fc8438881072083538da2b7b1bd9c5d2da49fe245583acb2939d638",
+        "bytes": 67512,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "quisqualis-indica",
+      "scientificName": "Quisqualis indica",
+      "commonNameZh": "使君子",
+      "commonNameEn": "Rangoon creeper",
+      "growthForm": "climber",
+      "applicationRegions": [
+        "facade"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 450,
+        "max": 600
+      },
+      "irrigationDemand": "moderate",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": false,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": null,
+        "pollution": null,
+        "shade": true
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Deciduous flowering climber for supported vertical greening.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Quisqualis indica",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_103/93_Quisqualis_indica.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/quisqualis-indica.jpg",
+        "alt": "Quisqualis indica — reference photograph",
+        "author": "Tatiana Gerus from Brisbane, Australia",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Quisqualis_indica_1.jpg",
+        "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Quisqualis_indica_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "6fd104963ca7abacf7fa8914dc1dc335b31ea7d953735095b08e6f3ff3507e32",
+        "bytes": 293758
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/quisqualis-indica.glb",
+        "sha256": "73481fe3281f23a7faf11c0ec9e2f2cd2b1789f5d8d20f40f4a65c1b1f54c091",
+        "bytes": 67508,
+        "kind": "procedural-concept",
+        "dimensionBasis": "Authored display proportions; not verified mature size"
+      },
+      "carbonEvidence": {
+        "status": "data-needed",
+        "sourceIds": [],
+        "reviewedAt": "2026-10-17",
+        "projectAnnualNetReductionKgCo2ePerM2": null,
+        "energySavings": "project-model-required"
+      }
+    },
+    {
+      "id": "tristellateia-australasiae",
+      "scientificName": "Tristellateia australasiae",
+      "commonNameZh": "三星果",
+      "commonNameEn": "Maiden's jealousy",
+      "growthForm": "climber",
+      "applicationRegions": [
+        "facade"
+      ],
+      "applicationBasis": "Hong Kong guide records vertical greening use; terrace and ground are not inferred.",
+      "referenceSoilDepthMm": {
+        "min": 450,
+        "max": 600
+      },
+      "irrigationDemand": "high",
+      "pruningDemand": "moderate",
+      "nativeToHongKong": false,
+      "evergreen": true,
+      "tolerances": {
+        "wind": true,
+        "saltSpray": true,
+        "drought": null,
+        "pollution": null,
+        "shade": null
+      },
+      "sunlightRequirement": null,
+      "seasonalInterest": {
+        "kind": "flower",
+        "months": [
+          7
+        ]
+      },
+      "plantingMonths": null,
+      "facadeSupport": "trellis-or-planter-system",
+      "description": "Evergreen yellow-flowered climber requiring facade support.",
+      "modelAssetId": null,
+      "sources": [
+        {
+          "title": "Hong Kong Skyrise Greenery Plant Guide — Tristellateia australasiae",
+          "url": "https://www.greening.gov.hk/filemanager/greening/en/content_103/96_Tristellateia_australasiae.pdf",
+          "page": 1,
+          "reviewedAt": "2026-10-17",
+          "method": "PDF legend and species page visually checked"
+        }
+      ],
+      "image": {
+        "src": "/plants/library/tristellateia-australasiae.jpg",
+        "alt": "Tristellateia australasiae — reference photograph",
+        "author": "Mokkie",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Maiden%27s_jealousy_(Tristellateia_australasiae)_1.jpg",
+        "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Maiden%27s_jealousy_%28Tristellateia_australasiae%29_1.jpg/1280px-Maiden%27s_jealousy_%28Tristellateia_australasiae%29_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "reviewedAt": "2026-10-17",
+        "changes": "Wikimedia-provided thumbnail resized and converted to JPEG; CSS crop for thumbnails; no botanical image edits.",
+        "sha256": "fe476e7edbb185df8e4ac1074402785585f1ed3e1dde293722129c110dcff747",
+        "bytes": 207288
+      },
+      "waterRequirements": {
+        "dailyLitresPerM2": null,
+        "waterQuality": null,
+        "irrigationMethod": null,
+        "rainwaterCompatibility": null
+      },
+      "matureSize": {
+        "heightM": null,
+        "spreadM": null
+      },
+      "safetyNotes": null,
+      "visualModel": {
+        "src": "/plants/species/tristellateia-australasiae.glb",
+        "sha256": "2e0be9c1b34f2cc9545953688bdc76aee415d686538ad2718839ff7569ac364f",
+        "bytes": 66956,
         "kind": "procedural-concept",
         "dimensionBasis": "Authored display proportions; not verified mature size"
       },

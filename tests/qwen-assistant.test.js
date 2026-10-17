@@ -57,7 +57,7 @@ test('Qwen SDK request uses regional endpoint, strict schema, bounded output, no
   assert.equal(wire.response_format.json_schema.schema.additionalProperties, false);
   assert.equal(wire.max_tokens, 2000);
   assert.match(wire.messages[0].content, /Traditional Chinese/);
-  assert.equal(JSON.parse(wire.messages[1].content).locations[0].plants[0].plantId, 'sedum-lineare');
+  assert.ok(JSON.parse(wire.messages[1].content).locations[0].plants.some(plant => plant.plantId === 'sedum-lineare'));
   assert.ok(!JSON.stringify(wire).includes(env.QWEN_API_KEY));
   assert.equal(calls, 1);
 });

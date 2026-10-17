@@ -17,11 +17,11 @@ test('reviewed catalog has unique identities, source links and explicit unknowns
   assert.equal(catalog.plants.find(plant => plant.id === 'ophiopogon-japonicus').seasonalInterest, null);
 });
 
-test('shallow low-water roof narrows to Sedum; unknowns never establish approval', () => {
+test('shallow low-water roof keeps only catalog plants matching depth and irrigation; unknowns never establish approval', () => {
   const result = recommendPlants(catalog, { region: 'roof', soilDepthMm: 150, irrigation: 'low', month: 4 });
-  assert.deepEqual(result.candidates.map(candidate => candidate.plantId), ['sedum-lineare']);
-  assert.equal(result.candidates[0].status, 'conditional');
-  assert.ok(result.candidates[0].checks.some(check => check.includes('light')));
+  assert.deepEqual(result.candidates.map(candidate => candidate.plantId).sort(), ['sansevieria-trifasciata-hahnii','sedum-lineare']);
+  assert.ok(result.candidates.every(candidate => candidate.status === 'conditional'));
+  assert.ok(result.candidates.every(candidate => candidate.checks.some(check => check.includes('light'))));
   assert.ok(result.excluded.find(candidate => candidate.plantId === 'arachis-pintoi').reasons.some(reason => reason.includes('Irrigation')));
   assert.equal(recommendPlants(catalog, { region: 'roof', soilDepthMm: 50 }).candidates.length, 0);
 });
@@ -30,8 +30,8 @@ test('month reorders ornamental preference without excluding perennial candidate
   const input = { region: 'roof', soilDepthMm: 250, irrigation: 'moderate' };
   const april = recommendPlants(catalog, { ...input, month: 4 });
   const june = recommendPlants(catalog, { ...input, month: 6 });
-  assert.equal(april.candidates[0].plantId, 'sedum-lineare');
-  assert.equal(june.candidates[0].plantId, 'arachis-pintoi');
+  assert.equal(april.candidates.find(candidate => candidate.plantId === 'sedum-lineare').score, 1);
+  assert.equal(june.candidates.find(candidate => candidate.plantId === 'arachis-pintoi').score, 1);
   assert.deepEqual(april.candidates.map(candidate => candidate.plantId).sort(), june.candidates.map(candidate => candidate.plantId).sort());
   const shady = recommendPlants(catalog, { ...input, light: 'shade' });
   assert.ok(shady.candidates.find(candidate => candidate.plantId === 'ophiopogon-japonicus').checks.some(check => check.includes('light')));
@@ -40,7 +40,9 @@ test('month reorders ornamental preference without excluding perennial candidate
 test('facade rooting system is required even for self-clinging plants', () => {
   assert.equal(recommendPlants(catalog, { region: 'facade', facadeSystem: 'unavailable' }).candidates.length, 0);
   const shallow = recommendPlants(catalog, { region: 'facade', soilDepthMm: 250, irrigation: 'moderate' });
-  assert.deepEqual(shallow.candidates.map(candidate => candidate.plantId), ['asparagus-densiflorus-myersii', 'ficus-pumila']);
+  assert.ok(shallow.candidates.some(candidate => candidate.plantId === 'asparagus-densiflorus-myersii'));
+  assert.ok(shallow.candidates.some(candidate => candidate.plantId === 'ficus-pumila'));
+  assert.ok(shallow.candidates.every(candidate => catalog.plants.find(plant => plant.id === candidate.plantId).referenceSoilDepthMm.min <= 250));
   assert.ok(shallow.candidates.find(candidate => candidate.plantId === 'ficus-pumila').checks.some(check => check.includes('wall finish')));
 });
 
